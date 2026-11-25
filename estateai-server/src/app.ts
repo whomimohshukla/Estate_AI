@@ -7,6 +7,12 @@ import helmet from 'helmet';
 import { env } from './config/env.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
 import { aiRouter } from './modules/ai/ai.routes.js';
+import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
+import { favoritesRouter } from './modules/favorites/favorites.routes.js';
+import { leadsRouter } from './modules/leads/leads.routes.js';
+import { notificationsRouter } from './modules/notifications/notifications.routes.js';
+import { reportsRouter } from './modules/reports/reports.routes.js';
+import { savedSearchesRouter } from './modules/saved-searches/saved-searches.routes.js';
 import { agentsRouter } from './modules/properties/agents.routes.js';
 import { propertiesRouter } from './modules/properties/properties.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
@@ -39,6 +45,12 @@ export function createApp(): Express {
   app.use(`${env.API_PREFIX}/properties`, propertiesRouter);
   app.use(`${env.API_PREFIX}/admin`, adminRouter);
   app.use(`${env.API_PREFIX}/ai`, aiRouter);
+  app.use(`${env.API_PREFIX}/favorites`, favoritesRouter);
+  app.use(`${env.API_PREFIX}/saved-searches`, savedSearchesRouter);
+  app.use(`${env.API_PREFIX}/leads`, leadsRouter);
+  app.use(`${env.API_PREFIX}/notifications`, notificationsRouter);
+  app.use(`${env.API_PREFIX}/reports`, reportsRouter);
+  app.use(`${env.API_PREFIX}/dashboard`, dashboardRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
