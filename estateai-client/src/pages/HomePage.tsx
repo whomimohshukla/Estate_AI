@@ -1,6 +1,5 @@
 import { ArrowRight, ArrowUpRight, Home, Search, ShieldCheck, Sparkles } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 import { PropertyCardSkeleton } from '../components/common/PropertyCardSkeleton'
 import { PropertyGrid } from '../components/common/PropertyGrid'
 import { NaturalLanguageSearch } from '../components/search/NaturalLanguageSearch'
@@ -19,7 +18,6 @@ export function HomePage() {
   })
 
   function searchProperties(query: string) {
-    toast.success('EstateAI is understanding your home search.')
     navigate(`/search?q=${encodeURIComponent(query)}`)
   }
 

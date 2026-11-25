@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, BadgeCheck, Clock3, Compass, Search, Sparkles } from 'lucide-react'
 import { useMemo } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { NaturalLanguageSearch } from '../components/search/NaturalLanguageSearch'
 import { PropertyCardSkeleton } from '../components/common/PropertyCardSkeleton'
@@ -41,7 +41,6 @@ function SuggestedListing({ id, title, price }: { id: string; title: string; pri
 
 export function AiSearchPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
   const query = searchParams.get('q')?.trim() ?? ''
   const page = Math.max(1, Number(searchParams.get('page')) || 1)
   const user = useAuthStore((state) => state.user)

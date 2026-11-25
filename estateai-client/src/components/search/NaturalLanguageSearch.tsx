@@ -2,7 +2,7 @@ import { ArrowRight, Search, Sparkles } from 'lucide-react'
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
 import { toast } from 'sonner'
 
-export const searchPrompts = [
+const searchPrompts = [
   '3 BHK apartment in Noida under ₹90 lakh',
   'Furnished 2 BHK for rent in Delhi',
   'Family home with parking and a garden',

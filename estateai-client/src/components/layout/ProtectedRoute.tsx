@@ -1,9 +1,9 @@
 import { LoaderCircle, LockKeyhole } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { StatusPanel } from '../components/common/StatusPanel'
-import { useAuthStore } from '../store/auth-store'
-import type { UserRole } from '../types/api'
+import { StatusPanel } from '../common/StatusPanel'
+import { useAuthStore } from '../../store/auth-store'
+import type { UserRole } from '../../types/api'
 
 interface ProtectedRouteProps {
   roles?: UserRole[]

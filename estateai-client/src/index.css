@@ -276,3 +276,10 @@ img {
     padding-block: 22px;
   }
 }
+
+@media (max-width: 319px) {
+  html,
+  body {
+    min-width: 0;
+  }
+}
