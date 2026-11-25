@@ -1,9 +1,31 @@
-import { Building2, Menu } from 'lucide-react'
-import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Building2, LogOut, Menu } from 'lucide-react'
+import { useState, type MouseEvent } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { toast } from 'sonner'
+import { authService } from '../../services/auth.service'
+import { useAuthStore } from '../../store/auth-store'
 
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { pathname, search } = useLocation()
+  const searchParams = new URLSearchParams(search)
+  const isProperties = pathname === '/properties'
+  const isRent = searchParams.get('purpose') === 'RENT'
+  const isApartment = searchParams.get('propertyType') === 'APARTMENT'
+  const user = useAuthStore((state) => state.user)
+  const clearSession = useAuthStore((state) => state.clearSession)
+
+  async function signOut(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault()
+    try {
+      await authService.logout()
+      clearSession()
+      toast.success('You’re signed out.')
+    } catch (error) {
+      clearSession()
+      toast.error(error instanceof Error ? error.message : 'Could not sign out. Please try again.')
+    }
+  }
 
   return (
     <header className="site-header">
@@ -13,15 +35,23 @@ export function SiteHeader() {
           <span>estate<span>ai</span></span>
         </Link>
         <nav id="mobile-navigation" className={`desktop-nav ${menuOpen ? 'mobile-nav-open' : ''}`} aria-label="Main navigation">
-          <NavLink to="/properties" onClick={() => setMenuOpen(false)}>Buy</NavLink>
-          <NavLink to="/properties?purpose=RENT" onClick={() => setMenuOpen(false)}>Rent</NavLink>
+          <Link className={isProperties && !isRent ? 'active' : ''} to="/properties" onClick={() => setMenuOpen(false)}>Buy</Link>
+          <Link className={isProperties && isRent ? 'active' : ''} to="/properties?purpose=RENT" onClick={() => setMenuOpen(false)}>Rent</Link>
+          <Link className={isProperties && isApartment ? 'active' : ''} to="/properties?propertyType=APARTMENT" onClick={() => setMenuOpen(false)}>Apartments</Link>
           <a href="/#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a>
         </nav>
         <div className="header-actions">
-          <span className="header-note">Thoughtful homes, found simply.</span>
-          <button type="button" className="btn btn-primary btn-small" disabled title="Account journeys are in development">
-            Sign in
-          </button>
+          {user ? (
+            <div className="account-actions">
+              <span className="account-greeting">Hello, {user.firstName}</span>
+              <button type="button" className="signout-button" onClick={signOut}><LogOut size={15} />Sign out</button>
+            </div>
+          ) : (
+            <div className="account-actions">
+              <Link className="header-login" to="/login">Log in</Link>
+              <Link className="btn btn-primary btn-small" to="/signup">Sign up <span aria-hidden="true">↗</span></Link>
+            </div>
+          )}
           <button
             type="button"
             className="mobile-menu icon-button"

@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, ListFilter, Search, SlidersHorizontal } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { PropertyCardSkeleton } from '../components/common/PropertyCardSkeleton'
 import { PropertyGrid } from '../components/common/PropertyGrid'
 import { StatusPanel } from '../components/common/StatusPanel'
@@ -73,7 +74,17 @@ export function PropertyListingsPage() {
 
   function applyFilters(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSearchParams(buildParams(new FormData(event.currentTarget), filters))
+    const formData = new FormData(event.currentTarget)
+    const minPrice = Number(formData.get('minPrice'))
+    const maxPrice = Number(formData.get('maxPrice'))
+    const minArea = Number(formData.get('minArea'))
+    const maxArea = Number(formData.get('maxArea'))
+    if ((minPrice && maxPrice && minPrice > maxPrice) || (minArea && maxArea && minArea > maxArea)) {
+      toast.error('Minimum values can’t be greater than maximum values.')
+      return
+    }
+    setSearchParams(buildParams(formData, filters))
+    toast.success('Your filters have been applied.')
   }
 
   function changePage(page: number) {
@@ -97,7 +108,7 @@ export function PropertyListingsPage() {
       </div>
       <div className="listing-layout">
         <aside className={`filters-sidebar ${filtersOpen ? 'filters-open' : ''}`}>
-          <div className="filters-title"><span><ListFilter size={17} />Filters</span><button type="button" onClick={() => setSearchParams({})}>Clear all</button></div>
+          <div className="filters-title"><span><ListFilter size={17} />Filters</span><button type="button" onClick={() => { setSearchParams({}); toast.info('Filters cleared.') }}>Clear all</button></div>
           <form key={searchParams.toString()} onSubmit={applyFilters}>
             <label className="filter-field">
               <span className="field-label">Search</span>

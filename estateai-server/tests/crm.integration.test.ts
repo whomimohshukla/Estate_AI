@@ -234,7 +234,6 @@ describe('CRM and operations API', () => {
       .post('/api/v1/reports')
       .set(auth(buyerToken))
       .send({ propertyId, reason: 'Listing details appear inaccurate', details: 'Please verify the amenities.' });
-    if (created.status !== 201) console.log(created.body);
     expect(created.status).toBe(201);
     reportId = created.body.data.report.id;
 

@@ -1,6 +1,7 @@
 import { ArrowRight, ArrowUpRight, Compass, Home, MapPin, Search, ShieldCheck, Sparkles } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { PropertyCardSkeleton } from '../components/common/PropertyCardSkeleton'
 import { PropertyGrid } from '../components/common/PropertyGrid'
 import { StatusPanel } from '../components/common/StatusPanel'
@@ -25,6 +26,7 @@ export function HomePage() {
     const params = new URLSearchParams()
     if (city.trim()) params.set('city', city.trim())
     params.set('purpose', purpose)
+    toast.success(city.trim() ? `Searching ${purpose === 'SALE' ? 'homes to buy' : 'homes to rent'} in ${city.trim()}.` : 'Showing available homes.')
     navigate(`/properties?${params.toString()}`)
   }
 
@@ -138,6 +140,7 @@ export function HomePage() {
             { label: 'Independent homes', value: 'HOUSE', detail: 'Room to make it your own' },
             { label: 'Villas', value: 'VILLA', detail: 'Space for the way you live' },
             { label: 'Land & plots', value: 'PLOT', detail: 'A blank canvas for what is next' },
+            { label: 'Commercial', value: 'COMMERCIAL', detail: 'Spaces for work and opportunity' },
           ].map((category, index) => (
             <Link className="category-card" to={`/properties?propertyType=${category.value}`} key={category.value}>
               <span className={`category-icon category-icon-${index + 1}`}><Home size={21} strokeWidth={1.6} /></span>

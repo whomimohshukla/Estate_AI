@@ -1,5 +1,6 @@
-import { ArrowUpRight, Bath, BedDouble, Heart, ImageOff, MapPin, Ruler } from 'lucide-react'
+import { ArrowUpRight, Bath, BedDouble, Heart, HeartHandshake, ImageOff, MapPin, Ruler } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { formatCompactPrice, readablePropertyType } from '../../lib/format'
 import type { Property } from '../../types/property'
 
@@ -28,10 +29,10 @@ export function PropertyCard({ property, compact = false }: PropertyCardProps) {
           <span className="property-category">{readablePropertyType(property.propertyType)}</span>
           <button
             type="button"
-            className="favorite-placeholder"
-            aria-label="Save property (sign in feature coming soon)"
-            title="Favorites are not available in the current API"
-            disabled
+            className="favorite-button"
+            aria-label={`Save ${property.title}`}
+            title="Save this home"
+            onClick={() => toast.info('Saved homes are coming soon. The current EstateAI API does not include favorites yet.', { icon: <HeartHandshake size={16} /> })}
           >
             <Heart size={17} />
           </button>
