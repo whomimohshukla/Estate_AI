@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowUpRight, Bath, BedDouble, Heart, ImageOff, MapPin, Ruler, Sparkles } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ApiError } from '../../lib/api'
 import { formatCompactPrice, readablePropertyType } from '../../lib/format'
@@ -19,6 +19,7 @@ export function PropertyCard({ property, compact = false, score }: PropertyCardP
   const user = useAuthStore((state) => state.user)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const location = useLocation()
   const favorites = useQuery({
     queryKey: ['favorites', 'check', property.id],
     queryFn: () => crmService.checkFavorite(property.id),
@@ -66,7 +67,7 @@ export function PropertyCard({ property, compact = false, score }: PropertyCardP
             onClick={() => {
               if (!user) {
                 toast.info('Sign in to save homes.')
-                navigate('/login')
+                navigate('/login', { state: { from: location.pathname + location.search } })
                 return
               }
               if (favorites.isError) {

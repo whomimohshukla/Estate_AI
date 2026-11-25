@@ -34,6 +34,28 @@ Users can then compare properties, ask questions through an AI assistant, save t
 
 ---
 
+# Quick start
+
+```bash
+cp .env.example estateai-server/.env
+cp estateai-client/.env.example estateai-client/.env
+docker compose up -d
+
+cd estateai-server
+npm install
+npm run prisma:deploy
+npm run prisma:seed
+npm run dev
+
+cd ../estateai-client
+npm install
+npm run dev
+```
+
+The API runs at `http://localhost:5000/api/v1` and the frontend at `http://localhost:5173`. See `docs/RELEASE.md` for production deployment, CI and backups.
+
+---
+
 # 2. Problem Statement
 
 Traditional real estate platforms have several limitations for buyers and agents.
@@ -1133,7 +1155,7 @@ CLIENT_URL=http://localhost:5173
 Frontend `.env.example`:
 
 ```env
-VITE_API_URL=http://localhost:5000/api/v1
+VITE_API_BASE_URL=http://localhost:5000/api/v1
 ```
 
 Never commit actual secrets to GitHub.

@@ -1,17 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "DM Sans", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #1e1b19;
   background: #fff;
+  font-size: 16px;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --accent: #f0504a;
-  --accent-dark: #d9433d;
-  --accent-soft: #fff0ec;
-  --gold: #f5c542;
+  --accent: #956b00;
+  --accent-dark: #715000;
+  --accent-soft: #fff3cd;
+  --gold: #f2c33b;
   --gold-light: #ffdb73;
+  --gold-deep: #c79613;
   --teal: var(--accent);
   --teal-dark: var(--accent-dark);
   --teal-soft: var(--accent-soft);
@@ -19,7 +21,7 @@
   --muted: #6d6964;
   --line: #ece7df;
   --surface: #fbf8f2;
-  --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --serif: "DM Serif Display", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
 }
 
 * {
@@ -35,6 +37,8 @@ body {
   min-width: 320px;
   margin: 0;
   background: #fff;
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 button,
@@ -60,6 +64,82 @@ button {
 img {
   display: block;
   max-width: 100%;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: #24211f;
+  font-weight: 780;
+  letter-spacing: 0;
+  transition: transform 160ms ease;
+}
+
+.brand:hover {
+  transform: translateY(-1px);
+}
+
+.brand-mark {
+  position: relative;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 32%);
+  border-radius: 13px;
+  background: linear-gradient(145deg, #f5ce5a, #e7b52d);
+  color: #282216;
+  box-shadow: 0 6px 15px rgb(198 150 19 / 24%);
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.brand-mark i {
+  position: absolute;
+  right: -5px;
+  bottom: -7px;
+  width: 19px;
+  height: 19px;
+  border: 1px solid rgb(255 255 255 / 50%);
+  border-radius: 50%;
+  background: var(--gold);
+  transition: transform 180ms ease;
+}
+
+.brand:hover .brand-mark {
+  transform: translateY(-2px) rotate(-4deg);
+  background: linear-gradient(145deg, #f8d66b, #e7b52d);
+}
+
+.brand:hover .brand-mark i {
+  transform: scale(1.25);
+}
+
+.brand-word {
+  display: grid;
+  color: #24211f;
+  font-size: 1.24rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.brand-name {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.brand-name > span {
+  color: var(--accent);
+}
+
+.brand-word small {
+  margin-top: 5px;
+  color: #8d857b;
+  font-size: 0.48rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
 }
 
 .page-shell {
@@ -131,12 +211,14 @@ img {
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: white;
+  background: var(--gold);
+  color: #211e1b;
+  box-shadow: 0 4px 12px rgb(149 107 0 / 14%);
 }
 
 .btn-primary:hover {
-  background: var(--accent-dark);
+  background: #e6b42a;
+  box-shadow: 0 7px 17px rgb(149 107 0 / 20%);
 }
 
 .btn-outline {
@@ -146,8 +228,8 @@ img {
 }
 
 .btn-outline:hover {
-  border-color: #f3c1b6;
-  background: #fff9f5;
+  border-color: #e5cc83;
+  background: #fff9e9;
 }
 
 .btn-small {
@@ -170,7 +252,7 @@ img {
 }
 
 .icon-button:hover {
-  border-color: #f3c1b6;
+  border-color: #e5cc83;
   color: var(--accent);
 }
 
@@ -196,7 +278,7 @@ img {
 
 .field-control:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgb(240 80 74 / 12%);
+  box-shadow: 0 0 0 3px rgb(149 107 0 / 15%);
 }
 
 .field-control::placeholder {

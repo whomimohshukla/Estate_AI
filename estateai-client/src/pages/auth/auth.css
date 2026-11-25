@@ -52,24 +52,23 @@
   align-items: center;
   gap: 10px;
   color: white;
-  font-size: 1.2rem;
-  font-weight: 780;
-  letter-spacing: -0.07em;
+  font-size: 1rem;
+  letter-spacing: 0;
 }
 
-.auth-brand > span:last-child > span {
-  color: var(--gold);
+.auth-brand .brand-mark {
+  border-color: rgb(255 255 255 / 27%);
+  background: var(--gold);
+  color: #211e1b;
+  box-shadow: 0 5px 15px rgb(198 150 19 / 20%);
 }
 
-.auth-brand-mark {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  border: 1px solid rgb(255 255 255 / 27%);
-  border-radius: 11px;
-  background: var(--accent);
-  color: white;
+.auth-brand .brand-name > span {
+  color: var(--gold-light);
+}
+
+.auth-brand .brand-word small {
+  color: rgb(255 255 255 / 68%);
 }
 
 .auth-story-copy {
@@ -280,7 +279,7 @@
 
 .auth-input-wrap input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgb(240 80 74 / 12%);
+  box-shadow: 0 0 0 3px rgb(149 107 0 / 15%);
 }
 
 .auth-field.has-error .auth-input-wrap input {
@@ -379,15 +378,15 @@
 }
 
 .role-choice label.selected {
-  border-color: #eea59d;
-  background: #fff5f1;
-  color: #3e2d28;
+  border-color: #e5c76d;
+  background: #fff8df;
+  color: #352b16;
 }
 
 .role-choice label:has(input:checked) {
-  border-color: #eea59d;
-  background: #fff5f1;
-  color: #3e2d28;
+  border-color: #e5c76d;
+  background: #fff8df;
+  color: #352b16;
 }
 
 .role-choice input {
@@ -514,9 +513,13 @@
     display: none;
   }
 
-  .auth-brand-mark {
+  .auth-brand .brand-mark {
     width: 32px;
     height: 32px;
+  }
+
+  .auth-brand .brand-word small {
+    display: none;
   }
 
   .auth-story-copy {

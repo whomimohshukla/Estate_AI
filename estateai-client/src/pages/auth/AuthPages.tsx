@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowRight, CheckCircle2, LoaderCircle, LockKeyhole, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { FormField } from '../../components/forms/FormField'
 import { GoogleSignInButton } from '../../components/forms/GoogleSignInButton'
@@ -28,6 +28,22 @@ function providerErrorMessage(error: unknown): string {
     : error instanceof Error ? error.message : 'Something went wrong. Please try again.'
 }
 
+function getPostLoginPath(role: 'BUYER' | 'AGENT' | 'ADMIN', requestedPath: unknown): string {
+  if (typeof requestedPath === 'string' && requestedPath.startsWith('/') && !requestedPath.startsWith('//')) {
+    const requestedUrl = new URL(requestedPath, window.location.origin)
+    const isAuthPath = /^\/(login|signup|forgot-password|reset-password)(\/|$)/.test(requestedUrl.pathname)
+    const hasRoleScope = /^\/(buyer|agent|admin)(\/|$)/.exec(requestedUrl.pathname)?.[1]
+    const roleMatchesPath = !hasRoleScope
+      || (role === 'BUYER' && hasRoleScope === 'buyer')
+      || (role === 'AGENT' && hasRoleScope === 'agent')
+      || (role === 'ADMIN' && hasRoleScope === 'admin')
+    if (!isAuthPath && roleMatchesPath) return requestedPath
+  }
+  if (role === 'ADMIN') return '/admin'
+  if (role === 'AGENT') return '/agent'
+  return '/buyer'
+}
+
 function AuthDivider() {
   return <div className="auth-divider"><span />or<span /></div>
 }
@@ -44,6 +60,7 @@ function AuthSubmit({ busy, children, disabled = false }: { busy: boolean; child
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const setSession = useAuthStore((state) => state.setSession)
   const [busy, setBusy] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
@@ -57,7 +74,8 @@ export function LoginPage() {
       const session = await authService.login(values)
       setSession(session)
       toast.success(`Welcome back, ${session.user.firstName}.`)
-      navigate('/', { replace: true })
+      const requestedPath = (location.state as { from?: unknown } | null)?.from
+      navigate(getPostLoginPath(session.user.role, requestedPath), { replace: true })
     } catch (error) {
       toast.error(providerErrorMessage(error))
     } finally {
@@ -88,13 +106,14 @@ export function LoginPage() {
         <PasswordField labelledBy="login-password-label" registration={register('password')} error={errors.password} autoComplete="current-password" />
         <AuthSubmit busy={busy}>Sign in</AuthSubmit>
       </form>
-      <p className="auth-switch">New to EstateAI? <Link to="/signup">Create an account</Link></p>
+      <p className="auth-switch">New to EstateAI? <Link to="/signup" state={location.state}>Create an account</Link></p>
     </div>
   )
 }
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const setSession = useAuthStore((state) => state.setSession)
   const [busy, setBusy] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
@@ -114,7 +133,8 @@ export function RegisterPage() {
       })
       setSession(session)
       toast.success('Account created. Check your email to verify your address.')
-      navigate('/', { replace: true })
+      const requestedPath = (location.state as { from?: unknown } | null)?.from
+      navigate(getPostLoginPath(session.user.role, requestedPath), { replace: true })
     } catch (error) {
       toast.error(providerErrorMessage(error))
     } finally {

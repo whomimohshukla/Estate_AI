@@ -1,6 +1,6 @@
 # EstateAI Client
 
-The EstateAI client is a React, TypeScript, and Vite application styled with Tailwind CSS and an original EstateAI design system. Public routes include the home page, live property discovery, property details, sign in, sign up, forgot password, and reset password.
+The EstateAI client is a React, TypeScript, and Vite application styled with Tailwind CSS and an original EstateAI design system. The homepage centres natural-language property search: a buyer describes a home in everyday language, EstateAI interprets the request, and the client shows backend-ranked listing results.
 
 ## Development
 
@@ -23,12 +23,14 @@ Property discovery, natural-language search, and details use the implemented bac
 - Authenticated favorite actions use `GET /favorites/:propertyId`, `POST /favorites/:propertyId`, and `DELETE /favorites/:propertyId`.
 - Auth request/response methods are typed from the implemented `/auth/*` routes. Refresh credentials are sent through HttpOnly cookies; access tokens remain in memory and are not written to local storage.
 - Email/password sign-up and sign-in, session restoration, sign-out, and password recovery use backend-supported auth routes and schemas. Buyer/agent role selection matches the server enum.
+- Buyer, agent, and admin workspaces are protected by role-aware routes. Signing in returns users to the protected page they originally requested when their role is allowed there; otherwise it opens their role's workspace.
+- The AI assistant, property comparison, favorites, inquiries, saved searches, agent leads/listings, notifications, and admin review screens use the existing typed service layer. They do not substitute local mock results for backend responses.
 
 The frontend does not generate sample listing data. The home page, listings, and detail routes render loading, error, and empty states based on real API responses.
 
-Google sign-in is shown as a provider option but reports that setup is unavailable: the current backend does not expose an OAuth route. Chat, comparison, and dashboard modules remain pending backend contracts. The frontend does not show fake data or hide API failures. Implementations should wait for backend route, validation, and response contracts.
+Google sign-in is shown as a provider option but reports that setup is unavailable: the current backend does not expose an OAuth route. The frontend does not show fake data or hide API failures.
 
-The visual refresh uses a warm charcoal, coral, and marigold palette inspired by the colors on Vidyst while keeping EstateAI's logo and page design original.
+The visual system uses charcoal, warm neutrals, and marigold yellow, with DM Sans for interface text and DM Serif Display for editorial headings. One shared EstateAI logo is used in the navbar, footer, and authentication pages. The homepage includes a reduced-motion-aware typewriter example and a plain-language three-step explanation of the search flow.
 
 ## Scripts
 

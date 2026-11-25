@@ -13,7 +13,7 @@ import { formatCompactPrice } from '../../lib/format'
 import { aiService } from '../../services/ai.service'
 import { crmService } from '../../services/crm.service'
 import type { LeadSummary } from '../../types/app'
-import './dashboard.css'
+import '../dashboard/dashboard.css'
 
 const savedSearchSchema = z.object({
   name: z.string().trim().min(2).max(100),

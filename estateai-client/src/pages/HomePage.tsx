@@ -2,12 +2,18 @@ import { ArrowRight, ArrowUpRight, Home, Search, ShieldCheck, Sparkles } from 'l
 import { Link, useNavigate } from 'react-router-dom'
 import { PropertyCardSkeleton } from '../components/common/PropertyCardSkeleton'
 import { PropertyGrid } from '../components/common/PropertyGrid'
+import { TypewriterText } from '../components/common/TypewriterText'
 import { NaturalLanguageSearch } from '../components/search/NaturalLanguageSearch'
 import { StatusPanel } from '../components/common/StatusPanel'
 import { useProperties } from '../hooks/useProperties'
 import './marketplace.css'
 
 const citySuggestions = ['Noida', 'Delhi', 'Gurugram', 'Bengaluru']
+const searchExamples = [
+  'A 3 BHK near metro in Noida',
+  'Furnished 2 BHK for rent in Delhi',
+  'A family home with parking and a garden',
+]
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -30,6 +36,11 @@ export function HomePage() {
             <span className="hero-kicker"><span /> Property search, in your own words</span>
             <h1>Say what you need.<br /><em>Find where you belong.</em></h1>
             <p>Tell EstateAI about your budget, the neighbourhood, or the little things you care about. We’ll search real listings for the right fit.</p>
+            <div className="hero-example">
+              <span className="hero-example-label">TRY A SEARCH</span>
+              <span className="hero-example-text"><TypewriterText phrases={searchExamples} /><i aria-hidden="true" /></span>
+              <span className="sr-only">Examples show the kinds of natural-language property searches EstateAI can understand.</span>
+            </div>
             <div className="hero-proof">
               <span><Sparkles size={16} /> Natural-language discovery</span>
               <span><ShieldCheck size={16} /> Published property listings</span>
@@ -133,25 +144,29 @@ export function HomePage() {
       <section id="how-it-works" className="page-shell how-section">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">A little more clarity at every step</span>
-            <h2>Finding home, made more human.</h2>
+            <span className="eyebrow">Simple by design</span>
+            <h2>From your words to your next home.</h2>
+            <p>No complicated filters to start. Describe the home you need and EstateAI takes it from there.</p>
           </div>
         </div>
         <div className="steps-grid">
           <article className="step-card">
             <span className="step-number">01</span>
-            <h3>Start with what matters</h3>
-            <p>Search by location and the details that shape your everyday life.</p>
+            <span className="step-label">YOU DESCRIBE IT</span>
+            <h3>Say what matters to you</h3>
+            <p>Type naturally: “A 2 BHK in Noida under ₹80 lakh, near the metro.”</p>
           </article>
           <article className="step-card">
             <span className="step-number">02</span>
-            <h3>Get the full picture</h3>
-            <p>See each listing's specifications, amenities and images in one place.</p>
+            <span className="step-label">ESTATEAI UNDERSTANDS</span>
+            <h3>Your words become useful filters</h3>
+            <p>EstateAI reads your location, budget and needs, then searches current property listings.</p>
           </article>
           <article className="step-card">
             <span className="step-number">03</span>
-            <h3>Choose with confidence</h3>
-            <p>Explore available homes and make your next move at your own pace.</p>
+            <span className="step-label">YOU EXPLORE</span>
+            <h3>Compare homes that fit</h3>
+            <p>Review ranked matches, see the details, save favourites, and contact the listing agent.</p>
           </article>
         </div>
       </section>

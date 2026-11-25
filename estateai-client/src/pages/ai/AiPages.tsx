@@ -13,7 +13,7 @@ import { formatCompactPrice } from '../../lib/format'
 import { aiService } from '../../services/ai.service'
 import { propertiesService } from '../../services/properties.service'
 import type { AiSearchResult, ChatMessage, ConversationSummary } from '../../types/app'
-import './dashboard.css'
+import '../dashboard/dashboard.css'
 
 const aiSearchSchema = z.object({
   query: z.string().trim().min(4, 'Describe the home you are looking for.'),

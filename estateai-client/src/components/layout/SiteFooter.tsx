@@ -1,5 +1,6 @@
-import { ArrowUpRight, Building2, Mail, MapPin, Sparkles } from 'lucide-react'
+import { ArrowUpRight, Mail, MapPin, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { EstateBrand } from '../common/EstateBrand'
 
 const currentYear = new Date().getFullYear()
 
@@ -8,10 +9,7 @@ export function SiteFooter() {
     <footer className="footer">
       <div className="page-shell footer-main">
         <div className="footer-brand-column">
-          <Link className="brand footer-brand" to="/" aria-label="EstateAI home">
-            <span className="brand-mark"><Building2 size={18} strokeWidth={2.2} /></span>
-            <span>estate<span>ai</span></span>
-          </Link>
+          <EstateBrand className="footer-brand" />
           <p>Find a home by describing what matters to you. EstateAI turns your words into a more thoughtful property search.</p>
           <Link className="footer-ai-link" to="/search"><Sparkles size={15} />Try AI property search <ArrowUpRight size={14} /></Link>
         </div>
