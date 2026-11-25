@@ -6,6 +6,7 @@ import { paginationMeta } from '../../../utils/pagination.js';
 import { AMENITIES, type PropertyQueryInput } from '../../properties/properties.schema.js';
 import { propertiesService } from '../../properties/properties.service.js';
 import type { PropertyDto } from '../../properties/properties.types.js';
+import { savedSearchesService } from '../../saved-searches/saved-searches.service.js';
 import { embeddingsService } from '../embeddings/embeddings.service.js';
 import { parseQueryOffline } from './offline-parser.js';
 import { extractedFiltersSchema, type AiSearchInput, type ExtractedFilters } from './search.schema.js';
@@ -135,6 +136,10 @@ export const aiSearchService = {
         metadata: { query: input.query, filters, resultCount: total, ranking },
       },
     });
+
+    if (viewer?.id) {
+      await savedSearchesService.recordHistory(viewer.id, input.query, filters, total);
+    }
 
     return {
       query: input.query,

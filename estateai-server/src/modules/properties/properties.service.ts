@@ -4,6 +4,7 @@ import { prisma } from '../../config/database.js';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../../utils/AppError.js';
 import { paginationMeta } from '../../utils/pagination.js';
 import { embeddingsService } from '../ai/embeddings/embeddings.service.js';
+import { savedSearchesService } from '../saved-searches/saved-searches.service.js';
 import { propertyRepository } from './properties.repository.js';
 import { toPropertyDto, type PropertyDto } from './properties.types.js';
 import type { CreatePropertyInput, PropertyQueryInput, UpdatePropertyInput } from './properties.schema.js';
@@ -131,6 +132,8 @@ export const propertiesService = {
       archivedAt: null,
     });
     await syncEmbedding(id);
+    const published = await propertyRepository.findById(id);
+    if (published) await savedSearchesService.notifyMatches(published);
 
     return this.getById(id, { id: property.agentId, role: 'AGENT' });
   },
