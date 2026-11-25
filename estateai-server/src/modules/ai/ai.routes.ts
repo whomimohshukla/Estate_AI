@@ -18,7 +18,7 @@ import { aiSearchSchema } from './search/search.schema.js';
 
 export const aiRouter = Router();
 
-aiRouter.post('/search', aiLimiter, validate(aiSearchSchema), aiSearchController.search);
+aiRouter.post('/search', aiLimiter, optionalAuth, validate(aiSearchSchema), aiSearchController.search);
 aiRouter.post(
   '/generate-description',
   aiLimiter,
