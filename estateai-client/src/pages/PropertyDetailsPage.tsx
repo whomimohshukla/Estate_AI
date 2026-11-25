@@ -1,12 +1,16 @@
-import { ArrowLeft, ArrowRight, Bath, BedDouble, Check, ChevronLeft, ChevronRight, House, ImageOff, MapPin, Ruler, ShieldCheck, Sparkles } from 'lucide-react'
+import { useMutation } from '@tanstack/react-query'
+import { ArrowLeft, ArrowRight, Bath, BedDouble, Check, ChevronLeft, ChevronRight, House, ImageOff, MapPin, Ruler, Send, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { PropertyCard } from '../components/common/PropertyCard'
 import { PropertyCardSkeleton } from '../components/common/PropertyCardSkeleton'
 import { StatusPanel } from '../components/common/StatusPanel'
 import { useProperties, useProperty } from '../hooks/useProperties'
 import { ApiError } from '../lib/api'
 import { formatPrice, readableAmenity, readableFurnishing, readablePropertyType } from '../lib/format'
+import { crmService } from '../services/crm.service'
+import { useAuthStore } from '../store/auth-store'
 import type { Property } from '../types/property'
 import './marketplace.css'
 
@@ -78,6 +82,10 @@ function PropertyFacts({ property }: { property: Property }) {
 
 export function PropertyDetailsPage() {
   const { id = '' } = useParams()
+  const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
+  const [inquiryOpen, setInquiryOpen] = useState(false)
+  const [inquiryMessage, setInquiryMessage] = useState('')
   const { data: property, isLoading, isError, error, refetch } = useProperty(id)
   const { data: similarData, isLoading: similarLoading } = useProperties({
     city: property?.city,
@@ -87,6 +95,25 @@ export function PropertyDetailsPage() {
     sortBy: 'createdAt',
   }, Boolean(property))
   const detailError = error instanceof ApiError ? error : null
+  const createLead = useMutation({
+    mutationFn: () => crmService.createLead({ propertyId: id, message: inquiryMessage }),
+    onSuccess: () => {
+      setInquiryOpen(false)
+      setInquiryMessage('')
+      toast.success('Your inquiry was sent to the listing agent.')
+    },
+    onError: (mutationError: unknown) => {
+      toast.error(mutationError instanceof ApiError ? mutationError.message : 'Could not send your inquiry.')
+    },
+  })
+
+  function openInquiry() {
+    if (!user) {
+      navigate('/login', { state: { from: `/properties/${id}` } })
+      return
+    }
+    setInquiryOpen(true)
+  }
 
   if (isLoading) {
     return (
@@ -168,22 +195,53 @@ export function PropertyDetailsPage() {
             <span className="eyebrow">Interested in this home?</span>
             <h2>Take the next step.</h2>
             <p>Connect with the listing agent to ask a question or arrange a visit.</p>
-            <button className="btn btn-primary inquiry-button" type="button" disabled title="Inquiry endpoint is not yet available">
+            <button className="btn btn-primary inquiry-button" type="button" onClick={openInquiry}>
               Contact agent <ArrowRight size={16} />
             </button>
-            <div className="integration-note"><ShieldCheck size={15} />Agent contact and inquiry submission will be enabled when the backend contract is available.</div>
+            <div className="integration-note"><ShieldCheck size={15} />Your inquiry goes to the agent managing this verified listing.</div>
           </div>
           <div className="detail-side-facts">
             <div><span>Price per sq ft</span><strong>{formatPrice(property.pricePerSqFt)}</strong></div>
             <div><span>Furnishing</span><strong>{readableFurnishing(property.furnishing)}</strong></div>
             <div><span>Listing purpose</span><strong>{property.purpose === 'SALE' ? 'For sale' : 'For rent'}</strong></div>
           </div>
-          <div className="assistant-teaser">
+          <Link className="assistant-teaser" to={`/buyer/chat?propertyId=${encodeURIComponent(property.id)}`}>
             <Sparkles size={18} />
-            <div><strong>Have a question?</strong><p>The property assistant is waiting on the backend chat API.</p></div>
-          </div>
+            <div><strong>Ask EstateAI</strong><p>Get grounded answers from this listing’s verified facts.</p></div>
+            <ArrowRight size={16} />
+          </Link>
         </aside>
       </div>
+
+      {inquiryOpen && (
+        <div className="inquiry-modal-backdrop" role="presentation" onClick={() => setInquiryOpen(false)}>
+          <div className="inquiry-modal" role="dialog" aria-modal="true" aria-labelledby="inquiry-title" onClick={(event) => event.stopPropagation()}>
+            <button className="modal-close" type="button" aria-label="Close inquiry" onClick={() => setInquiryOpen(false)}><X size={18} /></button>
+            <span className="eyebrow">CONTACT THE AGENT</span>
+            <h2 id="inquiry-title">Ask about {property.title}</h2>
+            <p>Write a short message. The agent will see it in their lead pipeline.</p>
+            <textarea
+              className="field-control"
+              rows={5}
+              value={inquiryMessage}
+              maxLength={2000}
+              placeholder="I’m interested in this property. Is a site visit possible this week?"
+              onChange={(event) => setInquiryMessage(event.target.value)}
+            />
+            <div className="inquiry-modal-actions">
+              <button className="btn btn-outline btn-small" type="button" onClick={() => setInquiryOpen(false)}>Cancel</button>
+              <button
+                className="btn btn-primary btn-small"
+                type="button"
+                disabled={inquiryMessage.trim().length < 5 || createLead.isPending}
+                onClick={() => createLead.mutate()}
+              >
+                <Send size={15} />{createLead.isPending ? 'Sending…' : 'Send inquiry'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="similar-section">
         <div className="section-heading">

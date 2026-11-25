@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { setAccessToken } from '../lib/api'
 import { authService, type AuthSession } from '../services/auth.service'
 import type { SafeUser } from '../types/api'
 
@@ -25,5 +26,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       throw error
     }
   },
-  clearSession: () => set({ user: null, initialized: true }),
+  clearSession: () => {
+    setAccessToken(null)
+    set({ user: null, initialized: true })
+  },
 }))

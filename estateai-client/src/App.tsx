@@ -9,6 +9,7 @@ import { SiteLayout } from './components/layout/SiteLayout'
 const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ default: module.HomePage })))
 const PropertyListingsPage = lazy(() => import('./pages/PropertyListingsPage').then((module) => ({ default: module.PropertyListingsPage })))
 const PropertyDetailsPage = lazy(() => import('./pages/PropertyDetailsPage').then((module) => ({ default: module.PropertyDetailsPage })))
+const AiSearchPage = lazy(() => import('./pages/AiSearchPage').then((module) => ({ default: module.AiSearchPage })))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })))
 const LoginPage = lazy(() => import('./pages/auth/AuthPages').then((module) => ({ default: module.LoginPage })))
 const RegisterPage = lazy(() => import('./pages/auth/AuthPages').then((module) => ({ default: module.RegisterPage })))
@@ -40,6 +41,7 @@ function App() {
             </Route>
             <Route element={<SiteLayout />}>
               <Route index element={<HomePage />} />
+              <Route path="search" element={<AiSearchPage />} />
               <Route path="properties" element={<PropertyListingsPage />} />
               <Route path="properties/:id" element={<PropertyDetailsPage />} />
               <Route path="*" element={<NotFoundPage />} />

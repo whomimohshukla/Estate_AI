@@ -1,4 +1,4 @@
-import { Building2, LogOut, Menu } from 'lucide-react'
+import { Building2, LogOut, Menu, Search, X } from 'lucide-react'
 import { useState, type MouseEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -10,6 +10,7 @@ export function SiteHeader() {
   const { pathname, search } = useLocation()
   const searchParams = new URLSearchParams(search)
   const isProperties = pathname === '/properties'
+  const isAiSearch = pathname === '/search'
   const isRent = searchParams.get('purpose') === 'RENT'
   const isApartment = searchParams.get('propertyType') === 'APARTMENT'
   const user = useAuthStore((state) => state.user)
@@ -38,6 +39,7 @@ export function SiteHeader() {
           <Link className={isProperties && !isRent ? 'active' : ''} to="/properties" onClick={() => setMenuOpen(false)}>Buy</Link>
           <Link className={isProperties && isRent ? 'active' : ''} to="/properties?purpose=RENT" onClick={() => setMenuOpen(false)}>Rent</Link>
           <Link className={isProperties && isApartment ? 'active' : ''} to="/properties?propertyType=APARTMENT" onClick={() => setMenuOpen(false)}>Apartments</Link>
+          <Link className={isAiSearch ? 'active nav-ai-search' : 'nav-ai-search'} to="/search" onClick={() => setMenuOpen(false)}><Search size={15} />AI search</Link>
           <a href="/#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a>
         </nav>
         <div className="header-actions">
@@ -60,7 +62,7 @@ export function SiteHeader() {
             aria-controls="mobile-navigation"
             onClick={() => setMenuOpen((open) => !open)}
           >
-            <Menu size={19} />
+            {menuOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
       </div>

@@ -1,19 +1,16 @@
-import { ArrowRight, ArrowUpRight, Compass, Home, MapPin, Search, ShieldCheck, Sparkles } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { ArrowRight, ArrowUpRight, Home, Search, ShieldCheck, Sparkles } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PropertyCardSkeleton } from '../components/common/PropertyCardSkeleton'
 import { PropertyGrid } from '../components/common/PropertyGrid'
+import { NaturalLanguageSearch } from '../components/search/NaturalLanguageSearch'
 import { StatusPanel } from '../components/common/StatusPanel'
 import { useProperties } from '../hooks/useProperties'
-import type { ListingPurpose } from '../types/property'
 import './marketplace.css'
 
 const citySuggestions = ['Noida', 'Delhi', 'Gurugram', 'Bengaluru']
 
 export function HomePage() {
-  const [city, setCity] = useState('')
-  const [purpose, setPurpose] = useState<ListingPurpose>('SALE')
   const navigate = useNavigate()
   const { data, isLoading, isError, error, refetch } = useProperties({
     limit: 3,
@@ -21,13 +18,9 @@ export function HomePage() {
     sortOrder: 'desc',
   })
 
-  function searchProperties(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const params = new URLSearchParams()
-    if (city.trim()) params.set('city', city.trim())
-    params.set('purpose', purpose)
-    toast.success(city.trim() ? `Searching ${purpose === 'SALE' ? 'homes to buy' : 'homes to rent'} in ${city.trim()}.` : 'Showing available homes.')
-    navigate(`/properties?${params.toString()}`)
+  function searchProperties(query: string) {
+    toast.success('EstateAI is understanding your home search.')
+    navigate(`/search?q=${encodeURIComponent(query)}`)
   }
 
   return (
@@ -36,41 +29,16 @@ export function HomePage() {
         <div className="hero-image" aria-hidden="true" />
         <div className="page-shell hero-content">
           <div className="hero-copy">
-            <span className="hero-kicker"><span /> Find a place that feels like yours</span>
-            <h1>Good homes.<br /><em>Better beginnings.</em></h1>
-            <p>Discover thoughtfully listed homes and make your next move with more confidence.</p>
+            <span className="hero-kicker"><span /> Property search, in your own words</span>
+            <h1>Say what you need.<br /><em>Find where you belong.</em></h1>
+            <p>Tell EstateAI about your budget, the neighbourhood, or the little things you care about. We’ll search real listings for the right fit.</p>
             <div className="hero-proof">
-              <span><ShieldCheck size={16} /> Listings reviewed by our team</span>
-              <span><Compass size={16} /> Search built around you</span>
+              <span><Sparkles size={16} /> Natural-language discovery</span>
+              <span><ShieldCheck size={16} /> Published property listings</span>
             </div>
           </div>
-          <form className="hero-search" onSubmit={searchProperties}>
-            <div className="search-tabs" aria-label="Listing purpose">
-              <button type="button" className={purpose === 'SALE' ? 'active' : ''} onClick={() => setPurpose('SALE')}>Buy</button>
-              <button type="button" className={purpose === 'RENT' ? 'active' : ''} onClick={() => setPurpose('RENT')}>Rent</button>
-            </div>
-            <label className="hero-search-label" htmlFor="hero-city">Where do you want to live?</label>
-            <div className="hero-search-row">
-              <div className="hero-location-input">
-                <MapPin size={18} />
-                <input
-                  id="hero-city"
-                  value={city}
-                  onChange={(event) => setCity(event.target.value)}
-                  placeholder="City or neighbourhood"
-                  aria-label="City or neighbourhood"
-                />
-              </div>
-              <button type="submit" className="btn btn-primary"><Search size={17} />Explore homes</button>
-            </div>
-            <div className="popular-searches">
-              <span>Popular:</span>
-              {citySuggestions.slice(0, 3).map((suggestion) => (
-                <button key={suggestion} type="button" onClick={() => setCity(suggestion)}>{suggestion}</button>
-              ))}
-            </div>
-          </form>
-          <div className="hero-image-credit">A calmer way to find your next place</div>
+          <NaturalLanguageSearch onSearch={searchProperties} />
+          <div className="hero-image-credit">One request. A more thoughtful shortlist.</div>
         </div>
       </section>
 
@@ -112,7 +80,7 @@ export function HomePage() {
             <div>
               <span className="eyebrow">Start with a place</span>
               <h2>Explore by city</h2>
-              <p>Search what is actually listed, with no made-up availability or counts.</p>
+              <p>Start with a city, then tell EstateAI the kind of place you have in mind.</p>
             </div>
           </div>
           <div className="city-grid">
@@ -157,10 +125,10 @@ export function HomePage() {
           <div className="ai-discovery-mark"><Sparkles size={20} /></div>
           <div>
             <span className="eyebrow">A more natural way to search</span>
-            <h2>Tell us what home means to you.</h2>
-            <p>Natural-language property discovery is being connected to the EstateAI AI search API. Until then, explore verified listings with the filters above.</p>
+            <h2>Your words become a smarter search.</h2>
+            <p>EstateAI interprets your requirements, applies trusted property filters, then ranks available homes against your request.</p>
           </div>
-          <Link className="btn btn-outline" to="/properties">Browse available homes <ArrowRight size={16} /></Link>
+          <Link className="btn btn-outline" to="/search"><Search size={16} />Try natural search <ArrowRight size={16} /></Link>
         </div>
       </section>
 
