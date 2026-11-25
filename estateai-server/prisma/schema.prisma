@@ -100,6 +100,7 @@ model User {
   properties            Property[]              @relation("AgentProperties")
   favorites             Favorite[]
   savedSearches         SavedSearch[]
+  searchHistories       SearchHistory[]
   buyerLeads            Lead[]                  @relation("BuyerLeads")
   agentLeads            Lead[]                  @relation("AgentLeads")
   conversations         Conversation[]
@@ -255,6 +256,18 @@ model SavedSearch {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+model SearchHistory {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query       String
+  filters     Json
+  resultCount Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model Lead {

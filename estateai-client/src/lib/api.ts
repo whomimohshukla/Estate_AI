@@ -103,8 +103,8 @@ api.interceptors.response.use(
         const token = await refreshAccessToken()
         config.headers.Authorization = `Bearer ${token}`
         return api.request(config)
-      } catch {
-        return Promise.reject(normalizeApiError(error))
+      } catch (refreshError: unknown) {
+        return Promise.reject(normalizeApiError(refreshError))
       }
     }
 
