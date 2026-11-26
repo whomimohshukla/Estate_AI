@@ -1,5 +1,5 @@
-import { ArrowRight, Search, Sparkles } from 'lucide-react'
-import { useState, type FormEvent, type KeyboardEvent } from 'react'
+import { ArrowRight, Check, Command, Search, Sparkles } from 'lucide-react'
+import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { toast } from 'sonner'
 
 const searchPrompts = [
@@ -24,6 +24,10 @@ export function NaturalLanguageSearch({
   busy = false,
 }: NaturalLanguageSearchProps) {
   const [query, setQuery] = useState(initialQuery)
+  const instanceId = useId()
+  const promptId = compact ? 'search-prompt-compact' : `search-prompt-${instanceId}`
+  const hintId = `search-prompt-hint-${instanceId}`
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -45,40 +49,63 @@ export function NaturalLanguageSearch({
     }
   }
 
+  function chooseSuggestion(prompt: string) {
+    setQuery(prompt)
+    textareaRef.current?.focus()
+  }
+
   return (
     <div className={`natural-search ${compact ? 'natural-search-compact' : ''}`}>
-      <form className="natural-search-form" onSubmit={submit}>
-        <div className="natural-search-topline">
-          <span className="ai-orb"><Sparkles size={16} /></span>
-          <span>Tell us what you’re looking for</span>
-          <span className="natural-search-hint">IN PLAIN LANGUAGE</span>
+      <div className="natural-search-header">
+        <span className="natural-search-orb"><Sparkles size={18} /></span>
+        <div className="natural-search-heading">
+          <strong>Tell us what you’re looking for</strong>
+          <span>Write it naturally. Add a location, budget, or must-have.</span>
         </div>
-        <label className="sr-only" htmlFor={compact ? 'search-prompt-compact' : 'search-prompt'}>Describe your ideal property</label>
-        <textarea
-          id={compact ? 'search-prompt-compact' : 'search-prompt'}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={handlePromptKey}
-          placeholder={'“A bright 3 BHK near metro in Noida, under ₹90 lakh…”'}
-          maxLength={500}
-          rows={compact ? 2 : 3}
-          aria-describedby="natural-search-hint"
-        />
+        <span className="natural-search-hint"><Sparkles size={12} /> PLAIN-LANGUAGE SEARCH</span>
+      </div>
+      <form className="natural-search-form" onSubmit={submit}>
+        <div className="natural-search-input">
+          <label className="natural-search-label" htmlFor={promptId}>Describe your ideal property</label>
+          <div className="natural-search-textarea-wrap">
+            <textarea
+              ref={textareaRef}
+              id={promptId}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={handlePromptKey}
+              placeholder={'“A bright 3 BHK near metro in Noida, under ₹90 lakh…”'}
+              maxLength={500}
+              rows={compact ? 2 : 3}
+              aria-describedby={hintId}
+            />
+            <span className="natural-search-input-mark" aria-hidden="true"><Search size={16} /></span>
+          </div>
+        </div>
         <div className="natural-search-bottom">
-          <span id="natural-search-hint" className="natural-search-count">{query.length}/500 · Press ⌘/Ctrl + Enter</span>
+          <div className="natural-search-assist">
+            <span id={hintId} className="natural-search-count">{query.length}/500 characters</span>
+            <span className="natural-search-shortcut"><Command size={12} /> Enter to search</span>
+          </div>
           <button className="btn btn-primary natural-search-submit" type="submit" disabled={busy}>
             {busy ? <span className="button-spinner" /> : <Search size={16} />}
-            {busy ? 'Finding homes…' : 'Find my home'}
+            {busy ? 'Finding homes…' : 'Search homes'}
             {!busy && <ArrowRight size={15} />}
           </button>
         </div>
       </form>
       {suggestions.length > 0 && (
         <div className="prompt-suggestions">
-          <span>Try</span>
+          <div className="prompt-suggestions-label"><span>Try a search like</span><Check size={13} /></div>
           {suggestions.map((prompt) => (
-            <button type="button" className="prompt-chip" key={prompt} onClick={() => setQuery(prompt)}>
-              {prompt}
+            <button
+              type="button"
+              className={`prompt-chip ${query === prompt ? 'selected' : ''}`}
+              key={prompt}
+              aria-pressed={query === prompt}
+              onClick={() => chooseSuggestion(prompt)}
+            >
+              <span>{prompt}</span><ArrowRight size={13} />
             </button>
           ))}
         </div>

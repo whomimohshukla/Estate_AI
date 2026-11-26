@@ -7,10 +7,10 @@ interface EstateBrandProps {
 
 export function EstateBrand({ className = '' }: EstateBrandProps) {
   return (
-    <Link className={`brand ${className}`.trim()} to="/" aria-label="EstateAI home">
+    <Link className={`brand ${className}`.trim()} to="/" aria-label="Estate home">
       <span className="brand-mark"><Building2 size={19} strokeWidth={2.2} /><i /></span>
       <span className="brand-word">
-        <span className="brand-name">estate<span>ai</span></span>
+        <span className="brand-name">Estate</span>
         <small>FIND HOME, YOUR WAY</small>
       </span>
     </Link>

@@ -10,7 +10,7 @@ export function SiteFooter() {
       <div className="page-shell footer-main">
         <div className="footer-brand-column">
           <EstateBrand className="footer-brand" />
-          <p>Find a home by describing what matters to you. EstateAI turns your words into a more thoughtful property search.</p>
+          <p>Find a home by describing what matters to you. Estate turns your words into a more thoughtful property search.</p>
           <Link className="footer-ai-link" to="/search"><Sparkles size={15} />Try AI property search <ArrowUpRight size={14} /></Link>
         </div>
         <div className="footer-column">
@@ -21,7 +21,7 @@ export function SiteFooter() {
           <Link to="/search">Natural-language search</Link>
         </div>
         <div className="footer-column">
-          <h2>Your EstateAI</h2>
+          <h2>Your Estate</h2>
           <Link to="/login">Log in</Link>
           <Link to="/signup">Create an account</Link>
           <a href="mailto:hello@estateai.in"><Mail size={14} />Contact us</a>
@@ -29,7 +29,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="page-shell footer-bottom">
-        <p>© {currentYear} EstateAI. A more considered way to find home.</p>
+        <p>© {currentYear} Estate. A more considered way to find home.</p>
         <span>Search with clarity. Move with confidence.</span>
       </div>
     </footer>

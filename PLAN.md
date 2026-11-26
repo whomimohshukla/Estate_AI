@@ -11,7 +11,7 @@ Scope: turn the README specification into a working, releasable product. Build b
 - Optional third-party services (Gemini, Cloudinary, Redis, email) degrade gracefully in development but are required/validated in production.
 - Every phase ends with typecheck + tests + a manual smoke check before moving on.
 
-## Phase 1 — Foundation and authentication (in progress)
+## Phase 1 — Foundation and authentication
 
 Deliverables:
 
@@ -72,4 +72,8 @@ Verification: `npm run typecheck`, `npm test`, `curl /api/v1/health`, register/l
 - Phase 1 complete: server scaffold, Prisma schema + initial migration, auth/RBAC, health checks, 10 passing tests, seed data.
 - Phase 2 complete: property CRUD, ownership checks, Cloudinary/local image pipeline, approval workflow, filters/pagination, 13 passing tests.
 - Phase 3 complete: Gemini config with offline fallback, NL structured search, factual description generator, pgvector embeddings + HNSW, hybrid ranking, 20 passing tests.
-- Next: Phase 4 (RAG chatbot, comparison, lead assistant).
+- Phase 4 complete: grounded RAG chatbot with conversation persistence, backend-computed comparison with saved history, lead assistant with grounded suggestions and matching, 25 passing tests.
+- Phase 5 complete: favorites, saved searches, search history, match notifications, leads CRM with CSV export, notifications, reports, agent/admin dashboards, 33 passing tests.
+- Phase 6 complete: public/auth/buyer/agent/admin pages, protected role routes, typed API services, AI search/chat/compare, CRM pages, property management, approvals, reports, dashboards.
+- Phase 7 complete: production Dockerfiles, Compose profile, Nginx SPA/API proxy, CI workflow, backup/restore scripts, release guide and verification.
+- Verified: server typecheck + 33 tests + build; client build + lint + 5 tests; live health, property, AI search, favorites and dashboard smoke checks.

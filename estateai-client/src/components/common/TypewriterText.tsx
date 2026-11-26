@@ -6,7 +6,11 @@ interface TypewriterTextProps {
 
 export function TypewriterText({ phrases }: TypewriterTextProps) {
   const [phraseIndex, setPhraseIndex] = useState(0)
-  const [text, setText] = useState(phrases[0] ?? '')
+  const [text, setText] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? phrases[0] ?? ''
+      : ''
+  ))
 
   useEffect(() => {
     if (phrases.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return

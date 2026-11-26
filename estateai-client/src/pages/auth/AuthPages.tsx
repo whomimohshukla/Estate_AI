@@ -86,7 +86,7 @@ export function LoginPage() {
   return (
     <div className="auth-card">
       <span className="auth-eyebrow">WELCOME BACK</span>
-      <h2>Sign in to EstateAI</h2>
+      <h2>Sign in to Estate</h2>
       <p className="auth-subtitle">Pick up where your home search left off.</p>
       <GoogleSignInButton />
       <AuthDivider />
@@ -106,7 +106,7 @@ export function LoginPage() {
         <PasswordField labelledBy="login-password-label" registration={register('password')} error={errors.password} autoComplete="current-password" />
         <AuthSubmit busy={busy}>Sign in</AuthSubmit>
       </form>
-      <p className="auth-switch">New to EstateAI? <Link to="/signup" state={location.state}>Create an account</Link></p>
+      <p className="auth-switch">New to Estate? <Link to="/signup" state={location.state}>Create an account</Link></p>
     </div>
   )
 }

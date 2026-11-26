@@ -31,6 +31,20 @@ services:
       timeout: 5s
       retries: 10
 
+  migrate:
+    build:
+      context: ./estateai-server
+      target: deps
+    container_name: estateai-migrate
+    restart: on-failure
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["npm", "run", "prisma:deploy"]
+
   api:
     build:
       context: ./estateai-server
@@ -47,8 +61,8 @@ services:
     volumes:
       - upload-data:/app/uploads
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     healthcheck:

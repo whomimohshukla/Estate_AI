@@ -46,7 +46,7 @@ function DashboardRedirect() {
   const user = useAuthStore((state) => state.user)
   const initialized = useAuthStore((state) => state.initialized)
 
-  if (!initialized) return <div className="route-loading" role="status">Loading EstateAI…</div>
+  if (!initialized) return <div className="route-loading" role="status">Loading Estate…</div>
   if (!user) return <Navigate to="/login" replace />
   if (user.role === 'ADMIN') return <Navigate to="/admin" replace />
   if (user.role === 'AGENT') return <Navigate to="/agent" replace />
@@ -58,7 +58,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthSessionLoader />
-        <Suspense fallback={<div className="route-loading" role="status">Loading EstateAI…</div>}>
+        <Suspense fallback={<div className="route-loading" role="status">Loading Estate…</div>}>
           <Routes>
             <Route element={<AuthLayout />}>
               <Route path="login" element={<LoginPage />} />

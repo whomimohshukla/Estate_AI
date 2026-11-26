@@ -18,7 +18,7 @@ export function AuthLayout() {
         </div>
       </section>
       <section className="auth-form-side">
-        <Link className="auth-back-home" to="/"><ArrowLeft size={15} />Back to EstateAI</Link>
+        <Link className="auth-back-home" to="/"><ArrowLeft size={15} />Back to Estate</Link>
         <div className="auth-form-container">
           <Outlet />
         </div>

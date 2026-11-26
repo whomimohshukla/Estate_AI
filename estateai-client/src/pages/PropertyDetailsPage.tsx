@@ -185,7 +185,7 @@ export function PropertyDetailsPage() {
           </section>
 
           <section className="detail-section detail-context-note">
-            <div><ShieldCheck size={18} /><strong>Listing details from EstateAI</strong></div>
+            <div><ShieldCheck size={18} /><strong>Listing details from Estate</strong></div>
             <p>Specifications and amenities are shown as provided in the published property listing.</p>
           </section>
         </article>
@@ -207,7 +207,7 @@ export function PropertyDetailsPage() {
           </div>
           <Link className="assistant-teaser" to={`/buyer/chat?propertyId=${encodeURIComponent(property.id)}`}>
             <Sparkles size={18} />
-            <div><strong>Ask EstateAI</strong><p>Get grounded answers from this listing’s verified facts.</p></div>
+            <div><strong>Ask Estate</strong><p>Get grounded answers from this listing’s verified facts.</p></div>
             <ArrowRight size={16} />
           </Link>
         </aside>

@@ -1,6 +1,6 @@
-# EstateAI Client
+# Estate Client
 
-The EstateAI client is a React, TypeScript, and Vite application styled with Tailwind CSS and an original EstateAI design system. The homepage centres natural-language property search: a buyer describes a home in everyday language, EstateAI interprets the request, and the client shows backend-ranked listing results.
+The Estate client is a React, TypeScript, and Vite application styled with Tailwind CSS and a custom Estate design system. The homepage centres natural-language property search: a buyer describes a home in everyday language, Estate interprets the request, and the client shows backend-ranked listing results.
 
 ## Development
 
@@ -30,7 +30,7 @@ The frontend does not generate sample listing data. The home page, listings, and
 
 Google sign-in is shown as a provider option but reports that setup is unavailable: the current backend does not expose an OAuth route. The frontend does not show fake data or hide API failures.
 
-The visual system uses charcoal, warm neutrals, and marigold yellow, with DM Sans for interface text and DM Serif Display for editorial headings. One shared EstateAI logo is used in the navbar, footer, and authentication pages. The homepage includes a reduced-motion-aware typewriter example and a plain-language three-step explanation of the search flow.
+The visual system uses charcoal, warm neutrals, and marigold yellow, with DM Sans for interface text and DM Serif Display for editorial headings. One shared Estate logo is used in the navbar, footer, and authentication pages. The homepage includes a reduced-motion-aware typewriter example and a plain-language three-step explanation of the search flow.
 
 ## Scripts
 

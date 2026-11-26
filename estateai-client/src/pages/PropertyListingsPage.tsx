@@ -98,9 +98,9 @@ export function PropertyListingsPage() {
     <div className="listing-page page-shell">
       <div className="listing-heading">
         <div>
-          <span className="eyebrow">EstateAI marketplace</span>
+          <span className="eyebrow">Estate marketplace</span>
           <h1>Find a place to call home.</h1>
-          <p>Explore property listings currently available on EstateAI.</p>
+          <p>Explore property listings currently available on Estate.</p>
         </div>
         <button type="button" className="btn btn-outline mobile-filter-toggle" onClick={() => setFiltersOpen(!filtersOpen)}>
           <SlidersHorizontal size={16} />Filters

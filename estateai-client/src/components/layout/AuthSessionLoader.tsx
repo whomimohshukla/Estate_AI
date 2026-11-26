@@ -22,7 +22,7 @@ export function AuthSessionLoader() {
     useAuthStore.getState().clearSession()
     if (!(error instanceof ApiError && error.status === 401)) {
       const message = error instanceof ApiError && error.status === undefined
-        ? 'EstateAI’s server is unavailable. Sign-in and listing data may not load.'
+        ? 'Estate’s server is unavailable. Sign-in and listing data may not load.'
         : error instanceof Error ? error.message : 'Could not restore your session.'
       toast.error(message)
     }

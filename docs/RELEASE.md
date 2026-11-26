@@ -46,6 +46,8 @@ Gemini, Cloudinary and SMTP are optional in development. EstateAI uses determini
    curl -fsS http://localhost/
    ```
 
+The one-shot `migrate` service applies Prisma migrations before the API starts. The API image runs with production dependencies only; Prisma CLI remains in the migration image.
+
 The web container serves the built SPA on port 80 and proxies `/api` and `/uploads` to the API container.
 
 ## Backups

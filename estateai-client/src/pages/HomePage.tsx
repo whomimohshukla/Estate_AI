@@ -35,11 +35,11 @@ export function HomePage() {
           <div className="hero-copy">
             <span className="hero-kicker"><span /> Property search, in your own words</span>
             <h1>Say what you need.<br /><em>Find where you belong.</em></h1>
-            <p>Tell EstateAI about your budget, the neighbourhood, or the little things you care about. We’ll search real listings for the right fit.</p>
+            <p>Tell Estate about your budget, the neighbourhood, or the little things you care about. We’ll search real listings for the right fit.</p>
             <div className="hero-example">
               <span className="hero-example-label">TRY A SEARCH</span>
               <span className="hero-example-text"><TypewriterText phrases={searchExamples} /><i aria-hidden="true" /></span>
-              <span className="sr-only">Examples show the kinds of natural-language property searches EstateAI can understand.</span>
+              <span className="sr-only">Examples show the kinds of natural-language property searches Estate can understand.</span>
             </div>
             <div className="hero-proof">
               <span><Sparkles size={16} /> Natural-language discovery</span>
@@ -56,7 +56,7 @@ export function HomePage() {
           <div>
             <span className="eyebrow">A good place to start</span>
             <h2>Recently listed homes</h2>
-            <p>Explore homes currently available through EstateAI.</p>
+            <p>Explore homes currently available through Estate.</p>
           </div>
           <Link className="text-link" to="/properties">View all homes <ArrowRight size={16} /></Link>
         </div>
@@ -68,7 +68,7 @@ export function HomePage() {
           <StatusPanel
             icon={Home}
             title="Homes aren't loading right now"
-            description={error.message || 'Check your connection to the EstateAI API and try again.'}
+            description={error.message || 'Check your connection to the Estate service and try again.'}
             action={<button className="btn btn-outline btn-small" onClick={() => void refetch()}>Try again</button>}
           />
         ) : data?.properties.length ? (
@@ -89,7 +89,7 @@ export function HomePage() {
             <div>
               <span className="eyebrow">Start with a place</span>
               <h2>Explore by city</h2>
-              <p>Start with a city, then tell EstateAI the kind of place you have in mind.</p>
+              <p>Start with a city, then tell Estate the kind of place you have in mind.</p>
             </div>
           </div>
           <div className="city-grid">
@@ -135,7 +135,7 @@ export function HomePage() {
           <div>
             <span className="eyebrow">A more natural way to search</span>
             <h2>Your words become a smarter search.</h2>
-            <p>EstateAI interprets your requirements, applies trusted property filters, then ranks available homes against your request.</p>
+            <p>Estate interprets your requirements, applies property filters, then ranks available homes against your request.</p>
           </div>
           <Link className="btn btn-outline" to="/search"><Search size={16} />Try natural search <ArrowRight size={16} /></Link>
         </div>
@@ -146,7 +146,7 @@ export function HomePage() {
           <div>
             <span className="eyebrow">Simple by design</span>
             <h2>From your words to your next home.</h2>
-            <p>No complicated filters to start. Describe the home you need and EstateAI takes it from there.</p>
+            <p>No complicated filters to start. Describe the home you need and Estate takes it from there.</p>
           </div>
         </div>
         <div className="steps-grid">
@@ -160,7 +160,7 @@ export function HomePage() {
             <span className="step-number">02</span>
             <span className="step-label">ESTATEAI UNDERSTANDS</span>
             <h3>Your words become useful filters</h3>
-            <p>EstateAI reads your location, budget and needs, then searches current property listings.</p>
+            <p>Estate reads your location, budget and needs, then searches current property listings.</p>
           </article>
           <article className="step-card">
             <span className="step-number">03</span>

@@ -75,7 +75,7 @@ export function AiSearchPage() {
         <div className="page-shell ai-search-hero-inner">
           <Link to="/" className="search-back-link"><ArrowLeft size={15} />Back home</Link>
           <div className="ai-search-heading">
-            <span className="ai-search-eyebrow"><span><Sparkles size={13} /></span> ESTATEAI NATURAL SEARCH</span>
+            <span className="ai-search-eyebrow"><span><Sparkles size={13} /></span> ESTATE NATURAL SEARCH</span>
             <h1>Find a home in<br /><em>your own words.</em></h1>
             <p>Tell us what matters — location, budget, the little things. We’ll find the listings that fit.</p>
           </div>
@@ -87,7 +87,7 @@ export function AiSearchPage() {
             suggestions={searchEnabled ? [] : undefined}
           />
           <div className="ai-search-trust">
-            <span><BadgeCheck size={15} /> Filters interpreted by EstateAI</span>
+            <span><BadgeCheck size={15} /> Filters interpreted by Estate</span>
             <span>Only published property listings are shown</span>
           </div>
         </div>
@@ -118,7 +118,7 @@ export function AiSearchPage() {
             title={isMissingEndpoint ? 'Natural-language search is not available on this server' : 'We couldn’t complete that search'}
             description={isMissingEndpoint
               ? 'The configured server did not recognize POST /ai/search. Check the API base URL or backend version.'
-              : search.error.message || 'The EstateAI search service had a problem. Your request was not replaced with sample results.'}
+              : search.error.message || 'Estate search had a problem. Your request was not replaced with sample results.'}
             action={<button className="btn btn-outline btn-small" type="button" onClick={retrySearch}>Try again</button>}
           />
         ) : search.data ? (

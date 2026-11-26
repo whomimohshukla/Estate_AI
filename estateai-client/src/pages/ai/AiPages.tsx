@@ -38,7 +38,7 @@ export function AiSearchPage() {
       <header className="dashboard-header">
         <span className="eyebrow">AI DISCOVERY</span>
         <h1>Search in plain language</h1>
-        <p>Describe your ideal home. EstateAI extracts strict filters and ranks verified listings by relevance.</p>
+        <p>Describe your ideal home. Estate extracts strict filters and ranks available listings by relevance.</p>
       </header>
       <form className="ai-search-form" onSubmit={handleSubmit((values) => search.mutate(values))}>
         <div className="ai-search-input">
@@ -134,7 +134,7 @@ export function ChatPage() {
     <div className="page-shell dashboard-page chat-page">
       <header className="dashboard-header">
         <span className="eyebrow">PROPERTY ASSISTANT</span>
-        <h1>Ask EstateAI</h1>
+        <h1>Ask Estate</h1>
         <p>Answers are grounded in verified listing facts. Missing information is never invented.</p>
       </header>
       <div className="chat-layout">
@@ -160,7 +160,7 @@ export function ChatPage() {
                 <p>{message.content}</p>
               </div>
             )) : (
-              <StatusPanel icon={Bot} title="Start a conversation" description={propertyId ? 'Ask about price, amenities, area, or metro distance for this listing.' : 'Select a property page and use “Ask EstateAI”, or ask a general question.'} />
+              <StatusPanel icon={Bot} title="Start a conversation" description={propertyId ? 'Ask about price, amenities, area, or metro distance for this listing.' : 'Select a property page and use “Ask Estate”, or ask a general question.'} />
             )}
           </div>
           <form
@@ -205,7 +205,7 @@ export function ComparePage() {
       <header className="dashboard-header">
         <span className="eyebrow">COMPARE HOMES</span>
         <h1>Choose up to three listings</h1>
-        <p>EstateAI compares verified price, area, bedrooms, amenities and metro distance.</p>
+        <p>Estate compares listing price, area, bedrooms, amenities and metro distance.</p>
       </header>
       <div className="compare-options">
         {listings.data?.properties.map((property) => (

@@ -81,7 +81,7 @@ export function BuyerDashboardPage() {
 
   return (
     <div className="page-shell dashboard-page">
-      <DashboardHeader eyebrow="BUYER WORKSPACE" title="Your home search, organised" description="Find homes, ask EstateAI, and keep every shortlist and inquiry in one place." />
+      <DashboardHeader eyebrow="BUYER WORKSPACE" title="Your home search, organised" description="Find homes, ask Estate, and keep every shortlist and inquiry in one place." />
       <div className="dashboard-quick-actions">
         <Link className="btn btn-primary" to="/buyer/ai-search"><Sparkles size={16} />Search with AI</Link>
         <Link className="btn btn-outline" to="/buyer/chat">Ask the assistant</Link>
@@ -286,9 +286,9 @@ export function NotificationsPage() {
 
 export function AssistantTeaser() {
   return (
-    <Link className="assistant-floating" to="/buyer/chat" aria-label="Open EstateAI assistant">
+    <Link className="assistant-floating" to="/buyer/chat" aria-label="Open Estate assistant">
       <MessageSquare size={20} />
-      <span>Ask EstateAI</span>
+      <span>Ask Estate</span>
     </Link>
   )
 }
