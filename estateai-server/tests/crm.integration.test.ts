@@ -281,4 +281,90 @@ describe('CRM and operations API', () => {
     expect(after.status).toBe(200);
     expect(after.body.data.count).toBe(0);
   });
+
+  it('exposes buyer dashboard and lead alias endpoints', async () => {
+    const dashboard = await request(app).get('/api/v1/dashboard/buyer').set(auth(buyerToken));
+    expect(dashboard.status).toBe(200);
+    expect(dashboard.body.data.favorites).toBeInstanceOf(Array);
+    expect(dashboard.body.data.savedSearches).toBeInstanceOf(Array);
+    expect(dashboard.body.data.inquiries).toBeInstanceOf(Array);
+    expect(dashboard.body.data.comparisons).toBeInstanceOf(Array);
+
+    const activities = await request(app).get(`/api/v1/leads/${leadId}/activities`).set(auth(agentToken));
+    expect(activities.status).toBe(200);
+    expect(activities.body.data.activities.length).toBeGreaterThan(0);
+
+    const status = await request(app)
+      .post(`/api/v1/leads/${leadId}/status`)
+      .set(auth(agentToken))
+      .send({ status: 'INTERESTED' });
+    expect(status.status).toBe(200);
+    expect(status.body.data.lead.status).toBe('INTERESTED');
+    expect(status.body.data.activity.type).toBe('STATUS_CHANGE');
+
+    const followUp = await request(app)
+      .post(`/api/v1/leads/${leadId}/follow-up`)
+      .set(auth(agentToken))
+      .send({ notes: 'Confirm site visit availability.', dueAt: new Date().toISOString() });
+    expect(followUp.status).toBe(201);
+    expect(followUp.body.data.activity.type).toBe('FOLLOW_UP');
+    expect(followUp.body.data.lead.id).toBe(leadId);
+
+    const forbidden = await request(app)
+      .post(`/api/v1/leads/${leadId}/follow-up`)
+      .set(auth(buyerToken))
+      .send({ notes: 'Buyer should not schedule agent follow-ups.' });
+    expect(forbidden.status).toBe(403);
+  });
+
+  it('restricts property image management to the owning agent', async () => {
+    const otherAgentToken = await register(`images-owner-${suffix}@example.com`, 'AGENT');
+    const images = await request(app).get(`/api/v1/properties/${propertyId}`).set(auth(agentToken));
+    const imageId = images.body.data.property.images[0].id as string;
+
+    const cover = await request(app)
+      .patch(`/api/v1/properties/${propertyId}/images/${imageId}/cover`)
+      .set(auth(otherAgentToken));
+    expect(cover.status).toBe(403);
+
+    const reorder = await request(app)
+      .patch(`/api/v1/properties/${propertyId}/images/order`)
+      .set(auth(otherAgentToken))
+      .send({ imageIds: [imageId] });
+    expect(reorder.status).toBe(403);
+  });
+
+  it('manages users and audit logs with admin-only authorization', async () => {
+    const managedToken = await register(`managed-${suffix}@example.com`, 'BUYER');
+    const managedEmail = `managed-${suffix}@example.com`;
+    const managed = await prisma.user.findUniqueOrThrow({ where: { email: managedEmail } });
+
+    const listed = await request(app).get('/api/v1/admin/users?role=BUYER').set(auth(adminToken));
+    expect(listed.status).toBe(200);
+    expect(listed.body.data.users.some((user: { id: string }) => user.id === managed.id)).toBe(true);
+
+    const forbidden = await request(app).get('/api/v1/admin/users').set(auth(buyerToken));
+    expect(forbidden.status).toBe(403);
+
+    const deactivated = await request(app)
+      .patch(`/api/v1/admin/users/${managed.id}/status`)
+      .set(auth(adminToken))
+      .send({ isActive: false });
+    expect(deactivated.status).toBe(200);
+    expect(deactivated.body.data.user.isActive).toBe(false);
+
+    const revokedMe = await request(app).get('/api/v1/users/me').set(auth(managedToken));
+    expect(revokedMe.status).toBe(401);
+
+    const roleChanged = await request(app)
+      .patch(`/api/v1/admin/users/${managed.id}/role`)
+      .set(auth(adminToken))
+      .send({ role: 'AGENT' });
+    expect(roleChanged.status).toBe(200);
+    expect(roleChanged.body.data.user.role).toBe('AGENT');
+
+    const logs = await request(app).get('/api/v1/admin/audit-logs').set(auth(adminToken));
+    expect(logs.status).toBe(200);
+    expect(logs.body.data.logs.some((log: { entityId: string }) => log.entityId === managed.id)).toBe(true);
+  });
 });

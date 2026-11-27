@@ -4,9 +4,11 @@ import { validate } from '../../middleware/validate.js';
 import { leadsController } from './leads.controller.js';
 import {
   createLeadSchema,
+  followUpSchema,
   leadActivitySchema,
   leadIdSchema,
   leadQuerySchema,
+  leadStatusSchema,
   updateLeadSchema,
 } from './leads.schema.js';
 
@@ -29,4 +31,29 @@ leadsRouter.post(
   validate(leadIdSchema, 'params'),
   validate(leadActivitySchema),
   leadsController.addActivity,
+);
+leadsRouter.get('/:id/activities', validate(leadIdSchema, 'params'), leadsController.listActivities);
+leadsRouter.post(
+  '/:id/status',
+  validate(leadIdSchema, 'params'),
+  validate(leadStatusSchema),
+  leadsController.updateStatus,
+);
+leadsRouter.patch(
+  '/:id/status',
+  validate(leadIdSchema, 'params'),
+  validate(leadStatusSchema),
+  leadsController.updateStatus,
+);
+leadsRouter.post(
+  '/:id/follow-up',
+  validate(leadIdSchema, 'params'),
+  validate(followUpSchema),
+  leadsController.addFollowUp,
+);
+leadsRouter.patch(
+  '/:id/follow-up',
+  validate(leadIdSchema, 'params'),
+  validate(followUpSchema),
+  leadsController.addFollowUp,
 );

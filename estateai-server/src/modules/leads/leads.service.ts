@@ -18,7 +18,9 @@ const leadInclude = {
 } satisfies Prisma.LeadInclude;
 
 function csvCell(value: unknown): string {
-  return `"${String(value ?? '').replaceAll('"', '""')}"`;
+  const text = String(value ?? '');
+  const prefix = /^[\t\r ]*[=+\-@]/.test(text) ? "'" : '';
+  return `"${prefix}${text.replaceAll('"', '""')}"`;
 }
 
 export const leadsService = {
@@ -162,6 +164,25 @@ export const leadsService = {
     }
 
     return activity;
+  },
+
+  async listActivities(viewer: Viewer, id: string) {
+    await this.getById(viewer, id);
+    return prisma.leadActivity.findMany({ where: { leadId: id }, orderBy: { createdAt: 'desc' } });
+  },
+
+  async updateStatus(viewer: Viewer, id: string, status: UpdateLeadInput['status']) {
+    if (!status) throw new NotFoundError('Status is required');
+
+    const lead = await this.update(viewer, id, { status });
+    const activity = lead.activities.find((item) => item.type === 'STATUS_CHANGE') ?? null;
+    return { lead, activity };
+  },
+
+  async addFollowUp(viewer: Viewer, id: string, input: { notes: string; dueAt?: Date }) {
+    const activity = await this.addActivity(viewer, id, { type: 'FOLLOW_UP', ...input });
+    const lead = await this.getById(viewer, id);
+    return { lead, activity };
   },
 
   async exportCsv(viewer: Viewer, status?: LeadStatus): Promise<string> {

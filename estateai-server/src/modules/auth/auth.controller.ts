@@ -3,7 +3,7 @@ import { asyncHandler } from '../../utils/async-handler.js';
 import { success } from '../../utils/api-response.js';
 import { UnauthorizedError } from '../../utils/AppError.js';
 import { validatedQuery } from '../../utils/validated-query.js';
-import { ACCESS_COOKIE, REFRESH_COOKIE } from '../../middleware/auth.js';
+import { ACCESS_COOKIE, REFRESH_COOKIE, extractAccessToken } from '../../middleware/auth.js';
 import { authCookies, authService, type TokenMeta } from './auth.service.js';
 import type { ChangePasswordInput, RegisterInput } from './auth.schema.js';
 
@@ -44,7 +44,7 @@ export const authController = {
 
   logout: asyncHandler(async (req: Request, res: Response) => {
     const token = req.cookies?.[REFRESH_COOKIE] ?? (req.body as { token?: string } | undefined)?.token;
-    await authService.logout(typeof token === 'string' ? token : undefined);
+    await authService.logout(typeof token === 'string' ? token : undefined, extractAccessToken(req) ?? undefined);
 
     res.clearCookie(ACCESS_COOKIE, authCookies.clear());
     res.clearCookie(REFRESH_COOKIE, authCookies.clear());

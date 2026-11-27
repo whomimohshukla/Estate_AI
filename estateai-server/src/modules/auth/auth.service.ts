@@ -2,19 +2,21 @@ import { randomUUID } from 'node:crypto';
 import { sendEmail } from '../../config/mailer.js';
 import { prisma } from '../../config/database.js';
 import { env } from '../../config/env.js';
+import { denyAccessToken, revokeUserTokensBefore } from '../../config/redis.js';
 import { BadRequestError, ConflictError, UnauthorizedError } from '../../utils/AppError.js';
 import { hashPassword, comparePassword } from '../../utils/password.js';
 import {
   getRefreshTokenExpiry,
   signAccessToken,
   signRefreshToken,
+  verifyAccessToken,
   verifyRefreshToken,
 } from '../../utils/jwt.js';
 import { generateToken, hashToken } from '../../utils/tokens.js';
 import { authRepository } from './auth.repository.js';
 import { toSafeUser, type AuthResult } from './auth.types.js';
 import type { ChangePasswordInput, LoginInput, RegisterInput } from './auth.schema.js';
-import type { User } from '@prisma/client';
+import { type Prisma, type User } from '@prisma/client';
 
 export interface TokenMeta {
   ipAddress?: string;
@@ -43,6 +45,28 @@ function parseDurationMs(value: string): number {
   const amount = Number(match[1]);
   const units = { s: 1000, m: 60_000, h: 3_600_000, d: 86_400_000 } as const;
   return amount * units[match[2] as keyof typeof units];
+}
+
+async function denyCurrentAccessToken(accessToken: string | undefined): Promise<void> {
+  if (!accessToken) return;
+
+  try {
+    const payload = verifyAccessToken(accessToken);
+    if (!payload.jti) return;
+
+    const expiresAt = payload.exp ?? Math.floor(Date.now() / 1000) + parseDurationMs(env.JWT_ACCESS_EXPIRES_IN) / 1000;
+    await denyAccessToken(payload.jti, Math.max(1, expiresAt - Math.floor(Date.now() / 1000)));
+  } catch {
+    return;
+  }
+}
+
+type DbClient = typeof prisma | Prisma.TransactionClient;
+
+async function revokeAllSessions(userId: string, client: DbClient = prisma): Promise<void> {
+  const accessLifetimeSeconds = parseDurationMs(env.JWT_ACCESS_EXPIRES_IN) / 1000;
+  await revokeUserTokensBefore(userId, Math.floor(Date.now() / 1000) + 1, accessLifetimeSeconds + 300);
+  await authRepository.revokeAllRefreshTokens(userId, client);
 }
 
 async function issueTokens(user: User, meta: TokenMeta): Promise<AuthResult> {
@@ -150,7 +174,8 @@ export const authService = {
     return { user: toSafeUser(user), accessToken, refreshToken };
   },
 
-  async logout(token: string | undefined): Promise<void> {
+  async logout(token: string | undefined, accessToken?: string): Promise<void> {
+    await denyCurrentAccessToken(accessToken);
     if (!token) return;
 
     try {
@@ -162,6 +187,8 @@ export const authService = {
       return;
     }
   },
+
+  revokeAllSessions,
 
   async forgotPassword(email: string): Promise<void> {
     const user = await authRepository.findByEmail(email);
@@ -194,7 +221,7 @@ export const authService = {
     await prisma.$transaction(async (tx) => {
       await authRepository.updatePassword(stored.userId, passwordHash, tx);
       await authRepository.consumePasswordResetToken(stored.id, tx);
-      await authRepository.revokeAllRefreshTokens(stored.userId, tx);
+      await revokeAllSessions(stored.userId, tx);
     });
   },
 
@@ -221,7 +248,7 @@ export const authService = {
 
     await prisma.$transaction(async (tx) => {
       await authRepository.updatePassword(userId, passwordHash, tx);
-      await authRepository.revokeAllRefreshTokens(userId, tx);
+      await revokeAllSessions(userId, tx);
     });
   },
 

@@ -9,6 +9,42 @@ function countBy<T extends string>(values: T[]): Record<string, number> {
 }
 
 export const dashboardService = {
+  async buyer(viewer: Viewer) {
+    const [favorites, savedSearches, inquiries, comparisons] = await Promise.all([
+      prisma.favorite.findMany({
+        where: { userId: viewer.id },
+        include: {
+          property: {
+            select: { id: true, title: true, city: true, locality: true, price: true, status: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
+      prisma.savedSearch.findMany({
+        where: { userId: viewer.id },
+        orderBy: { updatedAt: 'desc' },
+        take: 10,
+      }),
+      prisma.lead.findMany({
+        where: { buyerId: viewer.id },
+        include: {
+          property: { select: { id: true, title: true, city: true, price: true, status: true } },
+          agent: { select: { id: true, firstName: true, lastName: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
+      prisma.auditLog.findMany({
+        where: { userId: viewer.id, action: 'PROPERTY_COMPARISON' },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
+    ]);
+
+    return { favorites, savedSearches, inquiries, comparisons };
+  },
+
   async agent(viewer: Viewer) {
     const [properties, leads, favoriteCount, recentLeads] = await Promise.all([
       prisma.property.findMany({

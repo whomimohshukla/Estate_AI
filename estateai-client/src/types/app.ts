@@ -69,12 +69,22 @@ export interface SearchHistoryItem {
   createdAt: string
 }
 
+export type LeadStatus = 'NEW' | 'CONTACTED' | 'INTERESTED' | 'NEGOTIATION' | 'CONVERTED' | 'LOST'
+
+export interface LeadActivity {
+  id: string
+  type: string
+  notes: string | null
+  dueAt: string | null
+  createdAt: string
+}
+
 export interface LeadSummary {
   id: string
   propertyId: string
   buyerId: string
   agentId: string
-  status: 'NEW' | 'CONTACTED' | 'INTERESTED' | 'NEGOTIATION' | 'CONVERTED' | 'LOST'
+  status: LeadStatus
   budgetMax: number | string | null
   requirements: string | null
   message: string
@@ -83,7 +93,7 @@ export interface LeadSummary {
   updatedAt: string
   property: { id: string; title: string; city: string; price: number; status: string }
   buyer: { id: string; firstName: string; lastName: string; email: string }
-  activities: Array<{ id: string; type: string; notes: string | null; dueAt: string | null; createdAt: string }>
+  activities: LeadActivity[]
 }
 
 export interface AppNotification {
@@ -121,6 +131,34 @@ export interface AgentDashboard {
     byStatus: Record<string, number>
     recent: LeadSummary[]
   }
+}
+
+export interface BuyerDashboard {
+  favorites: Property[]
+  savedSearches: SavedSearch[]
+  inquiries: LeadSummary[]
+  comparisons: SavedComparison[]
+}
+
+export interface AdminUser {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  role: 'BUYER' | 'AGENT' | 'ADMIN'
+  isActive: boolean
+  isEmailVerified: boolean
+  createdAt: string
+}
+
+export interface AuditLog {
+  id: string
+  actorId: string
+  action: string
+  entityType: string
+  entityId: string
+  createdAt: string
+  metadata: Record<string, unknown> | null
 }
 
 export interface AdminDashboard {

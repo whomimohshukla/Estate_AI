@@ -4,6 +4,11 @@ import { success } from '../../utils/api-response.js';
 import { dashboardService } from './dashboard.service.js';
 
 export const dashboardController = {
+  buyer: asyncHandler(async (req: Request, res: Response) => {
+    const data = await dashboardService.buyer({ id: req.user!.id, role: req.user!.role });
+    return success(res, data, 'Buyer dashboard ready');
+  }),
+
   agent: asyncHandler(async (req: Request, res: Response) => {
     const data = await dashboardService.agent({ id: req.user!.id, role: req.user!.role });
     return success(res, data, 'Agent dashboard ready');

@@ -80,3 +80,60 @@ export async function cacheDelete(key: string): Promise<void> {
     logger.warn({ key }, 'Failed to delete cache key');
   }
 }
+
+const ACCESS_DENY_PREFIX = 'auth:access-denied:';
+const USER_REVOKE_PREFIX = 'auth:user-revoked-before:';
+
+export async function denyAccessToken(jti: string, ttlSeconds: number): Promise<void> {
+  const redis = getRedis();
+  if (!redis || redis.status !== 'ready') return;
+
+  try {
+    await redis.set(`${ACCESS_DENY_PREFIX}${jti}`, '1', 'EX', Math.max(1, ttlSeconds));
+  } catch {
+    logger.warn({ jti }, 'Failed to deny access token');
+  }
+}
+
+export async function isAccessTokenDenied(jti: string): Promise<boolean> {
+  const redis = getRedis();
+  if (!redis || redis.status !== 'ready') return false;
+
+  try {
+    return (await redis.exists(`${ACCESS_DENY_PREFIX}${jti}`)) === 1;
+  } catch {
+    return false;
+  }
+}
+
+export async function revokeUserTokensBefore(
+  userId: string,
+  issuedAtSeconds: number,
+  ttlSeconds: number,
+): Promise<void> {
+  const redis = getRedis();
+  if (!redis || redis.status !== 'ready') return;
+
+  const key = `${USER_REVOKE_PREFIX}${userId}`;
+
+  try {
+    const current = await redis.get(key);
+    if (current === null || issuedAtSeconds > Number(current)) {
+      await redis.set(key, String(issuedAtSeconds), 'EX', Math.max(1, ttlSeconds));
+    }
+  } catch {
+    logger.warn({ userId }, 'Failed to revoke user access tokens');
+  }
+}
+
+export async function isUserTokenRevokedBefore(userId: string, issuedAtSeconds: number): Promise<boolean> {
+  const redis = getRedis();
+  if (!redis || redis.status !== 'ready') return false;
+
+  try {
+    const revokedBefore = await redis.get(`${USER_REVOKE_PREFIX}${userId}`);
+    return revokedBefore !== null && issuedAtSeconds < Number(revokedBefore);
+  } catch {
+    return false;
+  }
+}

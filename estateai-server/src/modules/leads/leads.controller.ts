@@ -41,6 +41,32 @@ export const leadsController = {
     return success(res, { activity }, 'Lead activity recorded', 201);
   }),
 
+  listActivities: asyncHandler(async (req: Request, res: Response) => {
+    const activities = await leadsService.listActivities(
+      { id: req.user!.id, role: req.user!.role },
+      req.params.id!,
+    );
+    return success(res, { activities }, 'Lead activities retrieved');
+  }),
+
+  updateStatus: asyncHandler(async (req: Request, res: Response) => {
+    const result = await leadsService.updateStatus(
+      { id: req.user!.id, role: req.user!.role },
+      req.params.id!,
+      (req.body as { status: 'NEW' | 'CONTACTED' | 'INTERESTED' | 'NEGOTIATION' | 'CONVERTED' | 'LOST' }).status,
+    );
+    return success(res, result, 'Lead status updated');
+  }),
+
+  addFollowUp: asyncHandler(async (req: Request, res: Response) => {
+    const result = await leadsService.addFollowUp(
+      { id: req.user!.id, role: req.user!.role },
+      req.params.id!,
+      req.body as { notes: string; dueAt?: Date },
+    );
+    return success(res, result, 'Follow-up scheduled', 201);
+  }),
+
   exportCsv: asyncHandler(async (req: Request, res: Response) => {
     const query = validatedQuery<LeadQueryInput>(req);
     const csv = await leadsService.exportCsv({ id: req.user!.id, role: req.user!.role }, query.status);

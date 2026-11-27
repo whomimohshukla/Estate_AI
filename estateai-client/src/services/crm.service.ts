@@ -1,7 +1,7 @@
 import { api } from '../lib/api'
 import { unwrap } from '../lib/envelope'
 import type { ApiSuccess, PaginationMeta } from '../types/api'
-import type { AppNotification, LeadSummary, PropertyReport, SavedSearch, SearchHistoryItem } from '../types/app'
+import type { AppNotification, LeadActivity, LeadStatus, LeadSummary, PropertyReport, SavedSearch, SearchHistoryItem } from '../types/app'
 import type { Property } from '../types/property'
 
 export interface SavedSearchInput {
@@ -99,8 +99,26 @@ export const crmService = {
     return unwrap(api.patch<ApiSuccess<{ lead: LeadSummary }>>(`/leads/${id}`, input)).then((data) => data.lead)
   },
 
-  async addLeadActivity(id: string, input: { type: string; notes: string; dueAt?: string }): Promise<void> {
-    await api.post(`/leads/${id}/activities`, input)
+  addLeadActivity(id: string, input: { type: string; notes: string; dueAt?: string }): Promise<LeadActivity> {
+    return unwrap(api.post<ApiSuccess<{ activity: LeadActivity }>>(`/leads/${id}/activities`, input)).then(
+      (data) => data.activity,
+    )
+  },
+
+  listLeadActivities(id: string): Promise<LeadActivity[]> {
+    return unwrap(api.get<ApiSuccess<{ activities: LeadActivity[] }>>(`/leads/${id}/activities`)).then(
+      (data) => data.activities,
+    )
+  },
+
+  updateLeadStatus(id: string, status: LeadStatus): Promise<LeadSummary> {
+    return unwrap(api.patch<ApiSuccess<{ lead: LeadSummary }>>(`/leads/${id}/status`, { status })).then(
+      (data) => data.lead,
+    )
+  },
+
+  addLeadFollowUp(id: string, notes: string): Promise<{ lead: LeadSummary; activity: LeadActivity }> {
+    return unwrap(api.post<ApiSuccess<{ lead: LeadSummary; activity: LeadActivity }>>(`/leads/${id}/follow-up`, { notes }))
   },
 
   async exportLeads(query: LeadQuery = {}): Promise<Blob> {

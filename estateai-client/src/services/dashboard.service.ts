@@ -1,9 +1,13 @@
 import { api } from '../lib/api'
 import { unwrap } from '../lib/envelope'
 import type { ApiSuccess } from '../types/api'
-import type { AdminDashboard, AgentDashboard } from '../types/app'
+import type { AdminDashboard, AgentDashboard, BuyerDashboard } from '../types/app'
 
 export const dashboardService = {
+  buyer(): Promise<BuyerDashboard> {
+    return unwrap(api.get<ApiSuccess<BuyerDashboard>>('/dashboard/buyer'))
+  },
+
   agent(): Promise<AgentDashboard> {
     return unwrap(api.get<ApiSuccess<AgentDashboard>>('/dashboard/agent'))
   },

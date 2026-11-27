@@ -2,7 +2,7 @@ import { Type, type Schema } from '@google/genai';
 import { generateStructured, geminiEnabled } from '../../../config/gemini.js';
 import { logger } from '../../../config/logger.js';
 import { AppError } from '../../../utils/AppError.js';
-import { propertiesService, type Viewer } from '../../properties/properties.service.js';
+import { getOwnedForManagement, propertiesService, type Viewer } from '../../properties/properties.service.js';
 import type { PropertyDto } from '../../properties/properties.types.js';
 import {
   generatedDescriptionSchema,
@@ -99,7 +99,8 @@ function fallbackDescription(property: PropertyDto, tone: GenerateDescriptionInp
 
 export const descriptionsService = {
   async generate(input: GenerateDescriptionInput, viewer: Viewer): Promise<GeneratedDescription> {
-    const property = await propertiesService.getById(input.propertyId, viewer);
+    const owned = await getOwnedForManagement(input.propertyId, viewer);
+    const property = await propertiesService.getById(owned.id, viewer, { skipViewTracking: true });
 
     if (geminiEnabled) {
       try {

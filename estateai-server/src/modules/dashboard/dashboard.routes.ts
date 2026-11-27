@@ -6,6 +6,7 @@ export const dashboardRouter = Router();
 
 dashboardRouter.use(requireAuth);
 
+dashboardRouter.get('/buyer', requireRole('BUYER', 'ADMIN'), dashboardController.buyer);
 dashboardRouter.get('/agent', requireRole('AGENT', 'ADMIN'), dashboardController.agent);
 dashboardRouter.get('/admin', requireRole('ADMIN'), dashboardController.admin);
 dashboardRouter.get('/analytics', requireRole('ADMIN'), dashboardController.analytics);

@@ -29,6 +29,15 @@ export const leadActivitySchema = z.object({
   dueAt: z.coerce.date().optional(),
 });
 
+export const leadStatusSchema = z.object({
+  status: z.enum(['NEW', 'CONTACTED', 'INTERESTED', 'NEGOTIATION', 'CONVERTED', 'LOST']),
+});
+
+export const followUpSchema = z.object({
+  notes: z.string().trim().min(2).max(2000),
+  dueAt: z.coerce.date().optional(),
+});
+
 export type CreateLeadInput = z.infer<typeof createLeadSchema>;
 export type LeadQueryInput = z.infer<typeof leadQuerySchema>;
 export type UpdateLeadInput = z.infer<typeof updateLeadSchema>;

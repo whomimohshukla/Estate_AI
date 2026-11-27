@@ -2,7 +2,7 @@ import type { AxiosRequestConfig } from 'axios'
 import { api } from '../lib/api'
 import { unwrap } from '../lib/envelope'
 import type { ApiSuccess, PaginationMeta } from '../types/api'
-import type { Property, PropertyFilters } from '../types/property'
+import type { Property, PropertyFilters, PropertyImage } from '../types/property'
 
 export interface PropertyListResponse {
   properties: Property[]
@@ -29,6 +29,8 @@ export interface CreatePropertyInput {
   postalCode: string
   metroDistanceKm?: number
 }
+
+export type UpdatePropertyInput = Partial<CreatePropertyInput>
 
 export type PropertyStatus = 'DRAFT' | 'PENDING' | 'AVAILABLE' | 'SOLD' | 'RENTED' | 'REJECTED' | 'ARCHIVED'
 
@@ -59,10 +61,34 @@ export const propertiesService = {
     return unwrap(api.post<ApiSuccess<{ property: Property }>>('/properties', input)).then((data) => data.property)
   },
 
+  update(id: string, input: UpdatePropertyInput): Promise<Property> {
+    return unwrap(api.patch<ApiSuccess<{ property: Property }>>(`/properties/${id}`, input)).then((data) => data.property)
+  },
+
+  archive(id: string): Promise<Property> {
+    return unwrap(api.delete<ApiSuccess<{ property: Property }>>(`/properties/${id}`)).then((data) => data.property)
+  },
+
   async uploadImage(id: string, file: File): Promise<void> {
     const form = new FormData()
     form.append('image', file)
     await api.post(`/properties/${id}/images`, form)
+  },
+
+  reorderImages(id: string, imageIds: string[]): Promise<PropertyImage[]> {
+    return unwrap(api.patch<ApiSuccess<{ images: PropertyImage[] }>>(`/properties/${id}/images/order`, { imageIds })).then(
+      (data) => data.images,
+    )
+  },
+
+  setCoverImage(id: string, imageId: string): Promise<PropertyImage> {
+    return unwrap(api.patch<ApiSuccess<{ image: PropertyImage }>>(`/properties/${id}/images/${imageId}/cover`)).then(
+      (data) => data.image,
+    )
+  },
+
+  async deleteImage(id: string, imageId: string): Promise<void> {
+    await api.delete(`/properties/${id}/images/${imageId}`)
   },
 
   async changeStatus(id: string, status: PropertyStatus): Promise<Property> {

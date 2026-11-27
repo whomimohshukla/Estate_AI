@@ -9,6 +9,10 @@ import type {
   SavedComparison,
 } from '../types/app'
 
+export const DESCRIPTION_TONES = ['PROFESSIONAL', 'LUXURY', 'FRIENDLY', 'SEO', 'SOCIAL'] as const
+
+export type DescriptionTone = (typeof DESCRIPTION_TONES)[number]
+
 export interface ChatInput {
   message: string
   propertyId?: string
@@ -37,7 +41,7 @@ export const aiService = {
     return unwrap(api.post<ApiSuccess<ChatResponse>>('/ai/chat', input))
   },
 
-  generateDescription(propertyId: string, tone: 'PROFESSIONAL' | 'LUXURY' | 'FRIENDLY' | 'CONCISE'): Promise<string> {
+  generateDescription(propertyId: string, tone: DescriptionTone): Promise<string> {
     return unwrap(
       api.post<ApiSuccess<{ description: { detailedDescription: string } }>>('/ai/generate-description', {
         propertyId,
