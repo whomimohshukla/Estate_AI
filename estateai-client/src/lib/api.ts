@@ -95,7 +95,7 @@ api.interceptors.response.use(
   async (error: AxiosError<ApiFailure>) => {
     const config = error.config as RetryConfig | undefined
     const requestUrl = config?.url ?? ''
-    const isAuthRequest = /\/auth\/(login|register|refresh|logout|me|forgot-password|reset-password|change-password|verify-email)$/.test(requestUrl)
+    const isAuthRequest = /\/auth\/(login|register|refresh|logout|me|forgot-password|reset-password|change-password|password|verify-email)$/.test(requestUrl)
 
     if (error.response?.status === 401 && config && !config.estateaiRetried && !isAuthRequest) {
       config.estateaiRetried = true

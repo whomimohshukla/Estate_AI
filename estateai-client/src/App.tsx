@@ -17,6 +17,8 @@ const LoginPage = lazy(() => import('./pages/auth/AuthPages').then((module) => (
 const RegisterPage = lazy(() => import('./pages/auth/AuthPages').then((module) => ({ default: module.RegisterPage })))
 const ForgotPasswordPage = lazy(() => import('./pages/auth/AuthPages').then((module) => ({ default: module.ForgotPasswordPage })))
 const ResetPasswordPage = lazy(() => import('./pages/auth/AuthPages').then((module) => ({ default: module.ResetPasswordPage })))
+const ChangePasswordPage = lazy(() => import('./pages/auth/AuthPages').then((module) => ({ default: module.ChangePasswordPage })))
+const VerifyEmailPage = lazy(() => import('./pages/auth/AuthPages').then((module) => ({ default: module.VerifyEmailPage })))
 const ChatPage = lazy(() => import('./pages/ai/AiPages').then((module) => ({ default: module.ChatPage })))
 const ComparePage = lazy(() => import('./pages/ai/AiPages').then((module) => ({ default: module.ComparePage })))
 const BuyerDashboardPage = lazy(() => import('./pages/dashboard/DashboardPages').then((module) => ({ default: module.BuyerDashboardPage })))
@@ -29,8 +31,12 @@ const SavedSearchesPage = lazy(() => import('./pages/crm/CrmPages').then((module
 const InquiriesPage = lazy(() => import('./pages/crm/CrmPages').then((module) => ({ default: module.InquiriesPage })))
 const LeadsPage = lazy(() => import('./pages/crm/CrmPages').then((module) => ({ default: module.LeadsPage })))
 const MyPropertiesPage = lazy(() => import('./pages/agent/MyPropertiesPage').then((module) => ({ default: module.MyPropertiesPage })))
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage').then((module) => ({ default: module.ProfilePage })))
 const ApprovalsPage = lazy(() => import('./pages/admin/AdminPages').then((module) => ({ default: module.ApprovalsPage })))
 const ReportsPage = lazy(() => import('./pages/admin/AdminPages').then((module) => ({ default: module.ReportsPage })))
+const AdminPropertiesPage = lazy(() => import('./pages/admin/AdminPages').then((module) => ({ default: module.AdminPropertiesPage })))
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminPages').then((module) => ({ default: module.AdminUsersPage })))
+const AuditLogsPage = lazy(() => import('./pages/admin/AdminPages').then((module) => ({ default: module.AuditLogsPage })))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +71,8 @@ function App() {
               <Route path="signup" element={<RegisterPage />} />
               <Route path="forgot-password" element={<ForgotPasswordPage />} />
               <Route path="reset-password" element={<ResetPasswordPage />} />
+              <Route path="verify-email" element={<VerifyEmailPage />} />
+              <Route path="account/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
             </Route>
             <Route element={<SiteLayout />}>
               <Route index element={<HomePage />} />
@@ -73,6 +81,7 @@ function App() {
               <Route path="properties/:id" element={<PropertyDetailsPage />} />
               <Route path="dashboard" element={<DashboardRedirect />} />
               <Route path="notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+              <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
               <Route path="chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
               <Route path="compare" element={<ProtectedRoute><ComparePage /></ProtectedRoute>} />
               <Route path="buyer" element={<ProtectedRoute roles={['BUYER']}><BuyerDashboardPage /></ProtectedRoute>} />
@@ -92,6 +101,9 @@ function App() {
               <Route path="admin/approvals" element={<ProtectedRoute roles={['ADMIN']}><ApprovalsPage /></ProtectedRoute>} />
               <Route path="admin/reports" element={<ProtectedRoute roles={['ADMIN']}><ReportsPage /></ProtectedRoute>} />
               <Route path="admin/analytics" element={<ProtectedRoute roles={['ADMIN']}><AdminAnalyticsPage /></ProtectedRoute>} />
+              <Route path="admin/properties" element={<ProtectedRoute roles={['ADMIN']}><AdminPropertiesPage /></ProtectedRoute>} />
+              <Route path="admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsersPage /></ProtectedRoute>} />
+              <Route path="admin/audit-logs" element={<ProtectedRoute roles={['ADMIN']}><AuditLogsPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>

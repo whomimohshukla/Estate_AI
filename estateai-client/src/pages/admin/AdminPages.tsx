@@ -1,13 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, FileWarning, RotateCcw, XCircle } from 'lucide-react'
+import { Building2, CheckCircle2, FileWarning, RefreshCw, RotateCcw, ScrollText, Users, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { StatusPanel } from '../../components/common/StatusPanel'
 import { ApiError } from '../../lib/api'
 import { formatCompactPrice } from '../../lib/format'
+import { adminService } from '../../services/admin.service'
 import { crmService } from '../../services/crm.service'
 import { propertiesService } from '../../services/properties.service'
+import type { AdminUser } from '../../types/app'
 import '../dashboard/dashboard.css'
 
 export function ApprovalsPage() {
@@ -110,6 +112,163 @@ export function ReportsPage() {
         </div>
       ) : (
         <StatusPanel icon={FileWarning} title="No reports" description="Submitted property reports will appear here." />
+      )}
+    </div>
+  )
+}
+
+export function AdminPropertiesPage() {
+  const properties = useQuery({
+    queryKey: ['admin', 'properties'],
+    queryFn: () => adminService.listProperties({ limit: 50 }),
+    retry: false,
+  })
+
+  return (
+    <div className="page-shell dashboard-page">
+      <header className="dashboard-header">
+        <span className="eyebrow">MARKETPLACE OVERVIEW</span>
+        <h1>All listings</h1>
+        <p>Every property on Estate, including drafts, approvals and archived listings.</p>
+      </header>
+      {properties.data?.properties.length ? (
+        <div className="dashboard-list dashboard-list-panel">
+          {properties.data.properties.map((property) => (
+            <Link className="dashboard-list-row" to={`/properties/${property.id}`} key={property.id}>
+              <div><strong>{property.title}</strong><span>{property.city} · {property.agentId.slice(0, 8)}</span></div>
+              <div className="lead-actions">
+                <span className="status-chip">{property.status}</span>
+                <strong>{formatCompactPrice(property.price)}</strong>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <StatusPanel
+          icon={Building2}
+          title={properties.isError ? 'Listing overview unavailable' : 'No listings yet'}
+          description={properties.isError ? 'The all-listings endpoint may not be available on this server yet.' : 'Properties will appear here once agents publish them.'}
+        />
+      )}
+    </div>
+  )
+}
+
+export function AdminUsersPage() {
+  const queryClient = useQueryClient()
+  const users = useQuery({ queryKey: ['admin', 'users'], queryFn: () => adminService.listUsers(), retry: false })
+
+  const setStatus = useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => adminService.updateUserStatus(id, isActive),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      toast.success('Account status updated.')
+    },
+    onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not update the account status.'),
+  })
+
+  const setRole = useMutation({
+    mutationFn: ({ id, role }: { id: string; role: AdminUser['role'] }) => adminService.updateUserRole(id, role),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      toast.success('Account role updated.')
+    },
+    onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not update the account role.'),
+  })
+
+  return (
+    <div className="page-shell dashboard-page">
+      <header className="dashboard-header">
+        <span className="eyebrow">ACCESS CONTROL</span>
+        <h1>Users</h1>
+        <p>Manage account roles and active status across the platform.</p>
+      </header>
+      {users.data?.length ? (
+        <div className="lead-table-wrap">
+          <table className="lead-table">
+            <thead><tr><th>User</th><th>Email verification</th><th>Role</th><th>Status</th></tr></thead>
+            <tbody>
+              {users.data.map((user) => (
+                <tr key={user.id}>
+                  <td><strong>{user.firstName} {user.lastName}</strong><small>{user.email}</small></td>
+                  <td>{user.isEmailVerified ? <span className="status-chip">VERIFIED</span> : <span className="status-chip">PENDING</span>}</td>
+                  <td>
+                    <select
+                      className="field-control"
+                      value={user.role}
+                      aria-label={`Role for ${user.email}`}
+                      disabled={setRole.isPending}
+                      onChange={(event) => setRole.mutate({ id: user.id, role: event.target.value as AdminUser['role'] })}
+                    >
+                      {['BUYER', 'AGENT', 'ADMIN'].map((role) => <option key={role}>{role}</option>)}
+                    </select>
+                  </td>
+                  <td>
+                    <button
+                      className={`btn btn-small ${user.isActive ? 'btn-outline' : 'btn-primary'}`}
+                      type="button"
+                      disabled={setStatus.isPending}
+                      onClick={() => setStatus.mutate({ id: user.id, isActive: !user.isActive })}
+                    >
+                      {user.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <StatusPanel
+          icon={Users}
+          title={users.isError ? 'User management unavailable' : 'No users yet'}
+          description={users.isError ? 'The admin users endpoint may not be available on this server yet.' : 'Registered accounts will appear here.'}
+        />
+      )}
+    </div>
+  )
+}
+
+export function AuditLogsPage() {
+  const logs = useQuery({ queryKey: ['admin', 'audit-logs'], queryFn: () => adminService.listAuditLogs(), retry: false })
+  const reindex = useMutation({
+    mutationFn: () => adminService.reindexEmbeddings(),
+    onSuccess: (count) => toast.success(`${count} embeddings reindexed.`),
+    onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not reindex embeddings.'),
+  })
+
+  return (
+    <div className="page-shell dashboard-page">
+      <header className="dashboard-header">
+        <span className="eyebrow">PLATFORM HISTORY</span>
+        <h1>Audit logs</h1>
+        <p>Review administrative actions and keep the search index current.</p>
+      </header>
+      <div className="dashboard-quick-actions">
+        <button className="btn btn-outline" type="button" disabled={reindex.isPending} onClick={() => reindex.mutate()}>
+          <RefreshCw size={16} />{reindex.isPending ? 'Reindexing…' : 'Reindex embeddings'}
+        </button>
+      </div>
+      {logs.data?.length ? (
+        <div className="dashboard-list dashboard-list-panel">
+          {logs.data.map((log) => (
+            <div className="dashboard-list-row" key={log.id}>
+              <div>
+                <strong>{log.action}</strong>
+                <span>{log.entityType} · {log.entityId} · actor {log.actorId.slice(0, 8)}</span>
+              </div>
+              <time>{new Date(log.createdAt).toLocaleString('en-IN')}</time>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <StatusPanel
+          icon={ScrollText}
+          title={logs.isError ? 'Audit log unavailable' : 'No audit activity'}
+          description={logs.isError ? 'The audit-logs endpoint may not be available on this server yet.' : 'Administrative actions will be recorded here.'}
+        />
       )}
     </div>
   )

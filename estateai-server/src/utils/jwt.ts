@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import type { Role } from '@prisma/client';
@@ -6,6 +7,9 @@ export interface AccessTokenPayload {
   sub: string;
   email: string;
   role: Role;
+  jti: string;
+  iat?: number;
+  exp?: number;
   type: 'access';
 }
 
@@ -15,8 +19,10 @@ export interface RefreshTokenPayload {
   type: 'refresh';
 }
 
-export function signAccessToken(payload: Omit<AccessTokenPayload, 'type'>): string {
-  return jwt.sign({ ...payload, type: 'access' }, env.JWT_ACCESS_SECRET, {
+export function signAccessToken(
+  payload: Omit<AccessTokenPayload, 'type' | 'jti'> & { jti?: string },
+): string {
+  return jwt.sign({ jti: randomUUID(), ...payload, type: 'access' }, env.JWT_ACCESS_SECRET, {
     expiresIn: env.JWT_ACCESS_EXPIRES_IN as SignOptions['expiresIn'],
   });
 }

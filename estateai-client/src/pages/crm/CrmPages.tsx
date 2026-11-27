@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { BookmarkCheck, ClipboardList, Download, Heart, LoaderCircle, MessageSquarePlus, Sparkles, Trash2, Users } from 'lucide-react'
+import { BookmarkCheck, ClipboardList, Download, Heart, LoaderCircle, MessageSquarePlus, Plus, Sparkles, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
@@ -12,7 +12,7 @@ import { ApiError } from '../../lib/api'
 import { formatCompactPrice } from '../../lib/format'
 import { aiService } from '../../services/ai.service'
 import { crmService } from '../../services/crm.service'
-import type { LeadSummary } from '../../types/app'
+import type { LeadStatus, LeadSummary } from '../../types/app'
 import '../dashboard/dashboard.css'
 
 const savedSearchSchema = z.object({
@@ -79,6 +79,24 @@ export function SavedSearchesPage() {
     },
   })
 
+  const toggleNotify = useMutation({
+    mutationFn: ({ id, notify }: { id: string; notify: boolean }) => crmService.updateSavedSearch(id, { notify }),
+    onSuccess: async (savedSearch) => {
+      await queryClient.invalidateQueries({ queryKey: ['saved-searches'] })
+      toast(savedSearch.notify ? 'Alerts turned on.' : 'Alerts turned off.')
+    },
+    onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not update alerts.'),
+  })
+
+  const clearHistory = useMutation({
+    mutationFn: () => crmService.clearSearchHistory(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['search-history'] })
+      toast.success('Search history cleared.')
+    },
+    onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not clear search history.'),
+  })
+
   return (
     <div className="page-shell dashboard-page">
       <header className="dashboard-header">
@@ -105,14 +123,20 @@ export function SavedSearchesPage() {
               {savedSearches.data.map((search) => (
                 <div className="dashboard-list-row" key={search.id}>
                   <div><strong>{search.name}</strong><span>{search.query || 'Saved filters'}</span></div>
-                  <button className="icon-button danger" type="button" aria-label={`Delete ${search.name}`} onClick={() => remove.mutate(search.id)}><Trash2 size={16} /></button>
+                  <div className="lead-actions">
+                    <label className="checkbox-field"><input type="checkbox" checked={search.notify} disabled={toggleNotify.isPending} onChange={(event) => toggleNotify.mutate({ id: search.id, notify: event.target.checked })} />Alerts</label>
+                    <button className="icon-button danger" type="button" aria-label={`Delete ${search.name}`} onClick={() => remove.mutate(search.id)}><Trash2 size={16} /></button>
+                  </div>
                 </div>
               ))}
             </div>
           ) : <StatusPanel icon={BookmarkCheck} title="No saved searches" description="Create one above to start tracking new listings." />}
         </section>
         <section className="dashboard-panel">
-          <div className="dashboard-panel-header"><h2>Recent AI searches</h2></div>
+          <div className="dashboard-panel-header">
+            <h2>Recent AI searches</h2>
+            {history.data?.length ? <button className="btn btn-outline btn-small" type="button" disabled={clearHistory.isPending} onClick={() => clearHistory.mutate()}>Clear history</button> : null}
+          </div>
           {history.data?.length ? (
             <div className="dashboard-list">
               {history.data.map((item) => (
@@ -158,9 +182,20 @@ export function LeadsPage() {
   const queryClient = useQueryClient()
   const leads = useQuery({ queryKey: ['leads', 'agent'], queryFn: () => crmService.listLeads({ limit: 50 }) })
   const [activeLead, setActiveLead] = useState<LeadSummary | null>(null)
+  const [activityType, setActivityType] = useState('NOTE')
+  const [activityNotes, setActivityNotes] = useState('')
+  const activities = useQuery({
+    queryKey: ['leads', activeLead?.id, 'activities'],
+    queryFn: () => crmService.listLeadActivities(activeLead!.id),
+    enabled: Boolean(activeLead),
+    retry: false,
+  })
 
   const updateStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) => crmService.updateLead(id, { status }),
+    mutationFn: ({ id, status }: { id: string; status: LeadStatus }) => crmService.updateLeadStatus(id, status).catch((error: unknown) => {
+      if (error instanceof ApiError && error.status === 404) return crmService.updateLead(id, { status })
+      throw error
+    }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['leads'] })
       toast.success('Lead status updated.')
@@ -172,6 +207,31 @@ export function LeadsPage() {
     mutationFn: (input: { leadId: string; task: 'SUMMARIZE' | 'FOLLOW_UP' | 'QUESTIONS' | 'PROPERTY_MATCH' }) => aiService.leadAssistant(input),
     onSuccess: (data) => toast.success(data.answer.slice(0, 180)),
     onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Assistant failed.'),
+  })
+
+  const addActivity = useMutation({
+    mutationFn: ({ id, type, notes }: { id: string; type: string; notes: string }) => crmService.addLeadActivity(id, { type, notes }),
+    onSuccess: async (_activity, variables) => {
+      setActivityNotes('')
+      await queryClient.invalidateQueries({ queryKey: ['leads'] })
+      await queryClient.invalidateQueries({ queryKey: ['leads', variables.id, 'activities'] })
+      const refreshed = await crmService.getLead(variables.id)
+      setActiveLead((current) => current?.id === variables.id ? refreshed : current)
+      toast.success('Activity recorded.')
+    },
+    onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not record the activity.'),
+  })
+
+  const followUp = useMutation({
+    mutationFn: (id: string) => crmService.addLeadFollowUp(id, 'Scheduled follow-up from the lead pipeline.'),
+    onSuccess: async (_result, id) => {
+      await queryClient.invalidateQueries({ queryKey: ['leads'] })
+      await queryClient.invalidateQueries({ queryKey: ['leads', id, 'activities'] })
+      const refreshed = await crmService.getLead(id)
+      setActiveLead((current) => current?.id === id ? refreshed : current)
+      toast.success('Follow-up scheduled.')
+    },
+    onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not schedule a follow-up.'),
   })
 
   const exportLeads = useMutation({
@@ -210,7 +270,7 @@ export function LeadsPage() {
                     <select
                       className="field-control"
                       value={lead.status}
-                      onChange={(event) => updateStatus.mutate({ id: lead.id, status: event.target.value })}
+                      onChange={(event) => updateStatus.mutate({ id: lead.id, status: event.target.value as LeadStatus })}
                       aria-label={`Status for ${lead.buyer.firstName}`}
                     >
                       {['NEW', 'CONTACTED', 'INTERESTED', 'NEGOTIATION', 'CONVERTED', 'LOST'].map((status) => <option key={status}>{status}</option>)}
@@ -219,6 +279,7 @@ export function LeadsPage() {
                   <td>
                     <div className="lead-actions">
                       <button type="button" className="btn btn-outline btn-small" onClick={() => setActiveLead(lead)}>Details</button>
+                      <button type="button" className="btn btn-outline btn-small" disabled={followUp.isPending} onClick={() => followUp.mutate(lead.id)}>Follow up</button>
                       <button type="button" className="btn btn-primary btn-small" onClick={() => assistant.mutate({ leadId: lead.id, task: 'FOLLOW_UP' })}><Sparkles size={14} />Draft</button>
                     </div>
                   </td>
@@ -242,13 +303,28 @@ export function LeadsPage() {
             <button className="btn btn-outline btn-small" type="button" onClick={() => assistant.mutate({ leadId: activeLead.id, task: 'PROPERTY_MATCH' })}>Matches</button>
           </div>
           <h3>Activity</h3>
-          {activeLead.activities.length ? (
+          <form
+            className="lead-activity-form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              if (activityNotes.trim().length < 2) return
+              addActivity.mutate({ id: activeLead.id, type: activityType, notes: activityNotes.trim() })
+            }}
+          >
+            <select className="field-control" value={activityType} onChange={(event) => setActivityType(event.target.value)} aria-label="Activity type">
+              {['NOTE', 'FOLLOW_UP', 'CALL', 'EMAIL', 'WHATSAPP', 'OTHER'].map((type) => <option key={type}>{type}</option>)}
+            </select>
+            <input className="field-control" value={activityNotes} maxLength={2000} placeholder="Add a note" aria-label="Activity notes" onChange={(event) => setActivityNotes(event.target.value)} />
+            <button className="btn btn-outline btn-small" type="submit" disabled={addActivity.isPending || activityNotes.trim().length < 2}><Plus size={14} />Add</button>
+          </form>
+          {(activities.data ?? activeLead.activities).length ? (
             <div className="dashboard-list">
-              {activeLead.activities.map((activity) => (
-                <div className="dashboard-list-row" key={activity.id}><div><strong>{activity.type}</strong><span>{activity.notes}</span></div></div>
+              {(activities.data ?? activeLead.activities).map((activity) => (
+                <div className="dashboard-list-row" key={activity.id}><div><strong>{activity.type}</strong><span>{activity.notes}</span></div><time>{new Date(activity.createdAt).toLocaleString('en-IN')}</time></div>
               ))}
             </div>
           ) : <p className="muted">No activities recorded.</p>}
+          {activities.isError && <p className="muted">Live activity feed is unavailable; showing saved activity from this lead.</p>}
         </section>
       )}
     </div>

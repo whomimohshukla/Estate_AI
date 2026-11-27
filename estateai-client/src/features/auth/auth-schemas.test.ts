@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { loginFormSchema, registerFormSchema, resetPasswordFormSchema } from './auth-schemas'
+import { changePasswordFormSchema, loginFormSchema, registerFormSchema, resetPasswordFormSchema } from './auth-schemas'
 
 describe('auth form validation', () => {
   it('normalizes email casing and whitespace for sign-in', () => {
@@ -26,6 +26,15 @@ describe('auth form validation', () => {
       confirmPassword: 'Different8',
     })
     expect(mismatch.success).toBe(false)
+  })
+
+  it('requires a matching new password when changing passwords', () => {
+    const invalid = changePasswordFormSchema.safeParse({
+      currentPassword: 'OldPass8',
+      newPassword: 'NewPass8',
+      confirmPassword: 'Different8',
+    })
+    expect(invalid.success).toBe(false)
   })
 
   it('only accepts backend-supported account roles', () => {

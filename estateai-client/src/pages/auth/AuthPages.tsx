@@ -1,20 +1,24 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, CheckCircle2, LoaderCircle, LockKeyhole, Mail } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { FormField } from '../../components/forms/FormField'
 import { GoogleSignInButton } from '../../components/forms/GoogleSignInButton'
 import { PasswordField } from '../../components/forms/PasswordField'
+import { StatusPanel } from '../../components/common/StatusPanel'
 import { ApiError } from '../../lib/api'
 import { authService } from '../../services/auth.service'
 import { useAuthStore } from '../../store/auth-store'
 import {
+  changePasswordFormSchema,
   forgotPasswordFormSchema,
   loginFormSchema,
   registerFormSchema,
   resetPasswordFormSchema,
+  type ChangePasswordFormValues,
   type ForgotPasswordFormValues,
   type LoginFormValues,
   type RegisterFormValues,
@@ -61,6 +65,7 @@ function AuthSubmit({ busy, children, disabled = false }: { busy: boolean; child
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const setSession = useAuthStore((state) => state.setSession)
   const [busy, setBusy] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
@@ -72,6 +77,7 @@ export function LoginPage() {
     setBusy(true)
     try {
       const session = await authService.login(values)
+      queryClient.clear()
       setSession(session)
       toast.success(`Welcome back, ${session.user.firstName}.`)
       const requestedPath = (location.state as { from?: unknown } | null)?.from
@@ -114,6 +120,7 @@ export function LoginPage() {
 export function RegisterPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const setSession = useAuthStore((state) => state.setSession)
   const [busy, setBusy] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
@@ -131,6 +138,7 @@ export function RegisterPage() {
         password: values.password,
         role: values.role,
       })
+      queryClient.clear()
       setSession(session)
       toast.success('Account created. Check your email to verify your address.')
       const requestedPath = (location.state as { from?: unknown } | null)?.from
@@ -276,4 +284,115 @@ export function ResetPasswordPage() {
       <p className="auth-switch">Remembered it? <Link to="/login">Sign in</Link></p>
     </div>
   )
+}
+
+export function ChangePasswordPage() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const clearSession = useAuthStore((state) => state.clearSession)
+  const { register, handleSubmit, formState: { errors } } = useForm<ChangePasswordFormValues>({
+    resolver: zodResolver(changePasswordFormSchema),
+    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
+  })
+  const change = useMutation({
+    mutationFn: (values: ChangePasswordFormValues) => authService.changePassword({
+      currentPassword: values.currentPassword,
+      newPassword: values.newPassword,
+    }),
+    onSuccess: async () => {
+      queryClient.clear()
+      clearSession()
+      toast.success('Password changed. Sign in again with your new password.')
+      navigate('/login', { replace: true })
+    },
+    onError: (error: unknown) => toast.error(providerErrorMessage(error)),
+  })
+
+  return (
+    <div className="auth-card">
+      <span className="auth-eyebrow">ACCOUNT SECURITY</span>
+      <h2>Change your password</h2>
+      <p className="auth-subtitle">Choose a strong password you haven’t used on Estate before.</p>
+      <form className="auth-form auth-form-spaced" onSubmit={handleSubmit((values) => change.mutate(values))} noValidate>
+        <PasswordField label="Current password" registration={register('currentPassword')} error={errors.currentPassword} autoComplete="current-password" />
+        <PasswordField label="New password" registration={register('newPassword')} error={errors.newPassword} autoComplete="new-password" />
+        <PasswordField label="Confirm new password" registration={register('confirmPassword')} error={errors.confirmPassword} autoComplete="new-password" />
+        <AuthSubmit busy={change.isPending}>Change password</AuthSubmit>
+      </form>
+      <p className="auth-switch"><Link to="/profile">Back to profile</Link></p>
+    </div>
+  )
+}
+
+export function VerifyEmailPage() {
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get('token') ?? ''
+  const queryClient = useQueryClient()
+  const currentUser = useAuthStore((state) => state.user)
+  const setUser = useAuthStore((state) => state.setUser)
+  const startedToken = useRef<string | null>(null)
+  const verify = useMutation({
+    mutationFn: (verificationToken: string) => authService.verifyEmail(verificationToken),
+    onSuccess: async () => {
+      if (currentUser) setUser(await authService.me())
+      await queryClient.invalidateQueries({ queryKey: ['auth', 'current-user'] })
+      toast.success('Your email address is verified.')
+    },
+    onError: (error: unknown) => toast.error(providerErrorMessage(error)),
+  })
+
+  useEffect(() => {
+    if (!token || startedToken.current === token) return
+    startedToken.current = token
+    verify.mutate(token)
+  }, [token, verify])
+
+  if (!token) {
+    return (
+      <div className="auth-card">
+        <span className="auth-eyebrow">EMAIL VERIFICATION</span>
+        <h2>Verification link needed</h2>
+        <p className="auth-subtitle">Open the verification link from your email to confirm your address.</p>
+        <p className="auth-switch"><Link to={currentUser ? '/profile' : '/login'}>Back to sign in</Link></p>
+      </div>
+    )
+  }
+
+  if (verify.isPending) {
+    return (
+      <div className="auth-card auth-success-card">
+        <LoaderCircle className="spin" size={26} />
+        <span className="auth-eyebrow">VERIFYING EMAIL</span>
+        <h2>Checking your link…</h2>
+      </div>
+    )
+  }
+
+  if (verify.isError) {
+    return (
+      <div className="auth-card auth-success-card">
+        <StatusPanel
+          icon={Mail}
+          title="We couldn’t verify this email"
+          description="The link may have expired or already been used. Try again or request a new verification email."
+          action={<button className="btn btn-primary" type="button" onClick={() => verify.mutate(token)}>Try again</button>}
+        />
+        <p className="auth-switch"><Link to={currentUser ? '/profile' : '/login'}>Back to sign in</Link></p>
+      </div>
+    )
+  }
+
+  if (verify.isSuccess) {
+    return (
+      <div className="auth-card auth-success-card">
+        <span className="success-icon"><CheckCircle2 size={26} /></span>
+        <span className="auth-eyebrow">EMAIL VERIFIED</span>
+        <h2>Your address is confirmed.</h2>
+        <p className="auth-subtitle">You’re all set to use your Estate account.</p>
+        <Link className="btn btn-primary auth-submit auth-link-button" to={currentUser ? '/profile' : '/login'}>Back to sign in <ArrowRight size={16} /></Link>
+      </div>
+    )
+  }
+
+  return null
 }

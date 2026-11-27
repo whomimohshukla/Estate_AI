@@ -41,7 +41,17 @@ export const resetPasswordFormSchema = z.object({
   message: 'Passwords do not match',
 })
 
+export const changePasswordFormSchema = z.object({
+  currentPassword: z.string().min(1, 'Enter your current password'),
+  newPassword: passwordSchema,
+  confirmPassword: z.string(),
+}).refine((value) => value.newPassword === value.confirmPassword, {
+  path: ['confirmPassword'],
+  message: 'Passwords do not match',
+})
+
 export type LoginFormValues = z.infer<typeof loginFormSchema>
 export type RegisterFormValues = z.infer<typeof registerFormSchema>
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordFormSchema>
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>
+export type ChangePasswordFormValues = z.infer<typeof changePasswordFormSchema>

@@ -1,101 +1,15 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, Bot, Check, LoaderCircle, MessageSquare, Search, Sparkles, User } from 'lucide-react'
+import { ArrowRight, Bot, Check, LoaderCircle, MessageSquare, Sparkles, Trash2, User } from 'lucide-react'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { z } from 'zod'
-import { PropertyCard } from '../../components/common/PropertyCard'
 import { StatusPanel } from '../../components/common/StatusPanel'
 import { ApiError } from '../../lib/api'
 import { formatCompactPrice } from '../../lib/format'
 import { aiService } from '../../services/ai.service'
 import { propertiesService } from '../../services/properties.service'
-import type { AiSearchResult, ChatMessage, ConversationSummary } from '../../types/app'
+import type { ChatMessage, ConversationSummary } from '../../types/app'
 import '../dashboard/dashboard.css'
-
-const aiSearchSchema = z.object({
-  query: z.string().trim().min(4, 'Describe the home you are looking for.'),
-})
-
-type AiSearchFormValues = z.infer<typeof aiSearchSchema>
-
-export function AiSearchPage() {
-  const [result, setResult] = useState<AiSearchResult | null>(null)
-  const { register, handleSubmit, formState: { errors } } = useForm<AiSearchFormValues>({
-    resolver: zodResolver(aiSearchSchema),
-    defaultValues: { query: '' },
-  })
-  const search = useMutation({
-    mutationFn: (values: AiSearchFormValues) => aiService.search(values.query),
-    onSuccess: (data) => setResult(data),
-    onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Search failed.'),
-  })
-
-  return (
-    <div className="page-shell dashboard-page">
-      <header className="dashboard-header">
-        <span className="eyebrow">AI DISCOVERY</span>
-        <h1>Search in plain language</h1>
-        <p>Describe your ideal home. Estate extracts strict filters and ranks available listings by relevance.</p>
-      </header>
-      <form className="ai-search-form" onSubmit={handleSubmit((values) => search.mutate(values))}>
-        <div className="ai-search-input">
-          <Search size={20} />
-          <input
-            className="field-control"
-            placeholder="e.g. 2BHK apartment in Noida under 80 lakh with parking"
-            aria-label="Natural language property search"
-            {...register('query')}
-          />
-          <button className="btn btn-primary" type="submit" disabled={search.isPending}>
-            {search.isPending ? <LoaderCircle className="spin" size={16} /> : <Sparkles size={16} />}
-            Search
-          </button>
-        </div>
-        {errors.query && <p className="field-error" role="alert">{errors.query.message}</p>}
-      </form>
-
-      {result && (
-        <>
-          <div className="ai-filter-summary">
-            <strong>Understood filters</strong>
-            <div>
-              {Object.entries(result.interpretedFilters)
-                .filter(([, value]) => value !== null && value !== undefined && value !== '' && (!Array.isArray(value) || value.length > 0))
-                .map(([key, value]) => (
-                  <span className="filter-chip" key={key}>{key}: {Array.isArray(value) ? value.join(', ') : String(value)}</span>
-                ))}
-              {Object.values(result.interpretedFilters).every((value) => value === null || value === undefined || value === '') && (
-                <span className="filter-chip">No strict filters detected</span>
-              )}
-            </div>
-            <span className="ranking-chip">Ranking: {result.ranking}</span>
-          </div>
-          {result.properties.length ? (
-            <div className="property-grid">
-              {result.properties.map((property) => <PropertyCard property={property} key={property.id} />)}
-            </div>
-          ) : (
-            <StatusPanel
-              icon={Search}
-              title="No exact matches"
-              description="Try widening your budget or removing an amenity filter."
-              action={result.suggestions.length ? (
-                <div className="suggestion-list">
-                  {result.suggestions.map((property) => (
-                    <a href={`/properties/${property.id}`} key={property.id}>{property.title} · {formatCompactPrice(property.price)}</a>
-                  ))}
-                </div>
-              ) : undefined}
-            />
-          )}
-        </>
-      )}
-    </div>
-  )
-}
 
 export function ChatPage() {
   const [searchParams] = useSearchParams()
@@ -124,6 +38,19 @@ export function ChatPage() {
     onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not get an answer.'),
   })
 
+  const removeConversation = useMutation({
+    mutationFn: (id: string) => aiService.deleteConversation(id),
+    onSuccess: async (_result, id) => {
+      if (conversationId === id) {
+        setConversationId(undefined)
+        setMessages([])
+      }
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] })
+      toast.success('Conversation deleted.')
+    },
+    onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not delete the conversation.'),
+  })
+
   async function openConversation(id: string) {
     setConversationId(id)
     const conversation: ConversationSummary = await aiService.getConversation(id)
@@ -141,15 +68,21 @@ export function ChatPage() {
         <aside className="chat-conversations">
           <h2>Conversations</h2>
           {conversations.data?.length ? conversations.data.map((conversation) => (
-            <button
-              type="button"
-              key={conversation.id}
-              className={`conversation-item ${conversationId === conversation.id ? 'active' : ''}`}
-              onClick={() => void openConversation(conversation.id)}
-            >
-              <MessageSquare size={15} />
-              <span>{conversation.title ?? 'Property conversation'}</span>
-            </button>
+            <div className={`conversation-item ${conversationId === conversation.id ? 'active' : ''}`} key={conversation.id}>
+              <button className="conversation-open" type="button" onClick={() => void openConversation(conversation.id)}>
+                <MessageSquare size={15} />
+                <span>{conversation.title ?? 'Property conversation'}</span>
+              </button>
+              <button
+                className="icon-button danger"
+                type="button"
+                aria-label={`Delete ${conversation.title ?? 'conversation'}`}
+                disabled={removeConversation.isPending}
+                onClick={() => removeConversation.mutate(conversation.id)}
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
           )) : <p className="muted">No conversations yet.</p>}
         </aside>
         <section className="chat-panel">

@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, LayoutDashboard, LogOut, Menu, Search, X } from 'lucide-react'
+import { Bell, LayoutDashboard, LogOut, Menu, Search, UserRound, X } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -70,8 +70,9 @@ export function SiteHeader() {
           <div className="mobile-nav-account">
             {user ? (
               <>
-                 <Link className="mobile-workspace-link" to={workspacePath} onClick={closeMenu}><LayoutDashboard size={17} />My workspace</Link>
-                 <Link className="mobile-workspace-link" to="/notifications" onClick={closeMenu}><Bell size={17} />Notifications{unreadCount.data ? <span className="notification-count">{unreadCount.data}</span> : null}</Link>
+                  <Link className="mobile-workspace-link" to={workspacePath} onClick={closeMenu}><LayoutDashboard size={17} />My workspace</Link>
+                  <Link className="mobile-workspace-link" to="/profile" onClick={closeMenu}><UserRound size={17} />Profile &amp; security</Link>
+                  <Link className="mobile-workspace-link" to="/notifications" onClick={closeMenu}><Bell size={17} />Notifications{unreadCount.data ? <span className="notification-count">{unreadCount.data}</span> : null}</Link>
                  <button type="button" className="mobile-signout-link" onClick={signOut}><LogOut size={16} />Sign out</button>
 
               </>
@@ -87,6 +88,7 @@ export function SiteHeader() {
           {user ? (
             <div className="account-actions">
               <Link className="workspace-button" to={workspacePath}><LayoutDashboard size={16} /><span>Workspace</span></Link>
+              <Link className="notification-link" to="/profile" aria-label="Profile and security"><UserRound size={17} /></Link>
               <Link className="notification-link" to="/notifications" aria-label={unreadCount.data ? `${unreadCount.data} unread notifications` : 'Notifications'}>
                 <Bell size={17} />
                 {unreadCount.data ? <span className="notification-count">{unreadCount.data}</span> : null}

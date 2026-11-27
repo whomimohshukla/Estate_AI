@@ -72,12 +72,20 @@ function DashboardSkeleton() {
 }
 
 export function BuyerDashboardPage() {
-  const favorites = useQuery({ queryKey: ['favorites'], queryFn: () => crmService.listFavorites() })
-  const savedSearches = useQuery({ queryKey: ['saved-searches'], queryFn: () => crmService.listSavedSearches() })
-  const inquiries = useQuery({ queryKey: ['leads', 'buyer'], queryFn: () => crmService.listLeads({ limit: 5 }) })
-  const comparisons = useQuery({ queryKey: ['comparisons'], queryFn: () => aiService.listComparisons() })
+  const buyer = useQuery({ queryKey: ['dashboard', 'buyer'], queryFn: () => dashboardService.buyer(), retry: false })
+  const useBuyerApi = buyer.isSuccess && Boolean(buyer.data)
+  const favorites = useQuery({ queryKey: ['favorites'], queryFn: () => crmService.listFavorites(), enabled: !useBuyerApi })
+  const savedSearches = useQuery({ queryKey: ['saved-searches'], queryFn: () => crmService.listSavedSearches(), enabled: !useBuyerApi })
+  const inquiries = useQuery({ queryKey: ['leads', 'buyer'], queryFn: () => crmService.listLeads({ limit: 5 }), enabled: !useBuyerApi })
+  const comparisons = useQuery({ queryKey: ['comparisons'], queryFn: () => aiService.listComparisons(), enabled: !useBuyerApi })
+  const favoriteCount = useBuyerApi ? buyer.data?.favorites.length ?? 0 : favorites.data?.length ?? 0
+  const savedSearchList = useBuyerApi ? buyer.data?.savedSearches ?? [] : savedSearches.data ?? []
+  const inquiryList = useBuyerApi ? buyer.data?.inquiries ?? [] : inquiries.data?.leads ?? []
+  const comparisonCount = useBuyerApi ? buyer.data?.comparisons.length ?? 0 : comparisons.data?.length ?? 0
 
-  if (favorites.isPending || savedSearches.isPending || inquiries.isPending || comparisons.isPending) return <DashboardSkeleton />
+  if (!useBuyerApi && (buyer.isPending || favorites.isPending || savedSearches.isPending || inquiries.isPending || comparisons.isPending)) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <div className="page-shell dashboard-page">
@@ -88,16 +96,16 @@ export function BuyerDashboardPage() {
         <Link className="btn btn-outline" to="/properties">Browse listings</Link>
       </div>
       <div className="metric-grid">
-        <MetricCard icon={Heart} label="Saved homes" value={favorites.data?.length ?? 0} />
-        <MetricCard icon={BookmarkCheck} label="Saved searches" value={savedSearches.data?.length ?? 0} />
-        <MetricCard icon={ClipboardList} label="Inquiries" value={inquiries.data?.leads.length ?? 0} />
-        <MetricCard icon={Building2} label="Comparisons" value={comparisons.data?.length ?? 0} />
+        <MetricCard icon={Heart} label="Saved homes" value={favoriteCount} />
+        <MetricCard icon={BookmarkCheck} label="Saved searches" value={savedSearchList.length} />
+        <MetricCard icon={ClipboardList} label="Inquiries" value={inquiryList.length} />
+        <MetricCard icon={Building2} label="Comparisons" value={comparisonCount} />
       </div>
       <div className="dashboard-columns">
         <DashboardPanel title="Recent inquiries" action={<Link className="text-link" to="/buyer/inquiries">View all<ArrowRight size={15} /></Link>}>
-          {inquiries.data?.leads.length ? (
+          {inquiryList.length ? (
             <div className="dashboard-list">
-              {inquiries.data.leads.map((lead) => (
+              {inquiryList.map((lead) => (
                 <Link className="dashboard-list-row" to={`/properties/${lead.propertyId}`} key={lead.id}>
                   <div><strong>{lead.property.title}</strong><span>{lead.property.city}</span></div>
                   <span className="status-chip">{lead.status}</span>
@@ -109,9 +117,9 @@ export function BuyerDashboardPage() {
           )}
         </DashboardPanel>
         <DashboardPanel title="Saved searches" action={<Link className="text-link" to="/buyer/saved-searches">Manage<ArrowRight size={15} /></Link>}>
-          {savedSearches.data?.length ? (
+          {savedSearchList.length ? (
             <div className="dashboard-list">
-              {savedSearches.data.slice(0, 5).map((search) => (
+              {savedSearchList.slice(0, 5).map((search) => (
                 <div className="dashboard-list-row" key={search.id}>
                   <div><strong>{search.name}</strong><span>{search.query || 'Saved filters'}</span></div>
                   <span className="status-chip">{search.notify ? 'ALERTS ON' : 'ALERTS OFF'}</span>
@@ -194,7 +202,10 @@ export function AdminDashboardPage() {
       <DashboardHeader eyebrow="ADMIN WORKSPACE" title="Platform control centre" description="Review listings, resolve reports, and monitor marketplace activity." />
       <div className="dashboard-quick-actions">
         <Link className="btn btn-primary" to="/admin/approvals"><CheckCircle2 size={16} />Review approvals</Link>
+        <Link className="btn btn-outline" to="/admin/properties">All listings</Link>
+        <Link className="btn btn-outline" to="/admin/users">Users</Link>
         <Link className="btn btn-outline" to="/admin/reports">Property reports</Link>
+        <Link className="btn btn-outline" to="/admin/audit-logs">Audit logs</Link>
         <Link className="btn btn-outline" to="/admin/analytics">Analytics</Link>
       </div>
       <div className="metric-grid">
@@ -253,9 +264,20 @@ export function NotificationsPage() {
     mutationFn: () => crmService.markAllNotificationsRead(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      await queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
       toast.success('All notifications marked as read.')
     },
     onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not update notifications.'),
+  })
+
+  const markOne = useMutation({
+    mutationFn: (id: string) => crmService.markNotificationRead(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      await queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
+      toast.success('Notification marked as read.')
+    },
+    onError: (error: unknown) => toast.error(error instanceof ApiError ? error.message : 'Could not update the notification.'),
   })
 
   return (
@@ -271,7 +293,13 @@ export function NotificationsPage() {
           {notifications.data.notifications.map((notification) => (
             <article className={`notification-item ${notification.isRead ? '' : 'unread'}`} key={notification.id}>
               <span className="notification-type">{notification.type.replaceAll('_', ' ')}</span>
-              <div><strong>{notification.title}</strong><p>{notification.body}</p></div>
+              <div>
+                <strong>{notification.title}</strong>
+                <p>{notification.body}</p>
+                {!notification.isRead && (
+                  <button className="btn btn-outline btn-small" type="button" disabled={markOne.isPending} onClick={() => markOne.mutate(notification.id)}>Mark as read</button>
+                )}
+              </div>
               <time>{new Date(notification.createdAt).toLocaleString('en-IN')}</time>
               {!notification.isRead && <span className="unread-dot" aria-label="Unread" />}
             </article>

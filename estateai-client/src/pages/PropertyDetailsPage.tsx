@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { ArrowLeft, ArrowRight, Bath, BedDouble, Check, ChevronLeft, ChevronRight, House, ImageOff, MapPin, Ruler, Send, ShieldCheck, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bath, BedDouble, Check, ChevronLeft, ChevronRight, Flag, House, ImageOff, MapPin, Ruler, Send, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -86,6 +86,9 @@ export function PropertyDetailsPage() {
   const user = useAuthStore((state) => state.user)
   const [inquiryOpen, setInquiryOpen] = useState(false)
   const [inquiryMessage, setInquiryMessage] = useState('')
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportReason, setReportReason] = useState('INCORRECT_LISTING_DETAILS')
+  const [reportDetails, setReportDetails] = useState('')
   const { data: property, isLoading, isError, error, refetch } = useProperty(id)
   const { data: similarData, isLoading: similarLoading } = useProperties({
     city: property?.city,
@@ -107,12 +110,34 @@ export function PropertyDetailsPage() {
     },
   })
 
+  const createReport = useMutation({
+    mutationFn: () => crmService.createReport({
+      propertyId: id,
+      reason: reportReason,
+      details: reportDetails.trim() || undefined,
+    }),
+    onSuccess: () => {
+      setReportOpen(false)
+      setReportDetails('')
+      toast.success('Thank you. Our team will review this listing.')
+    },
+    onError: (mutationError: unknown) => toast.error(mutationError instanceof ApiError ? mutationError.message : 'Could not submit your report.'),
+  })
+
   function openInquiry() {
     if (!user) {
       navigate('/login', { state: { from: `/properties/${id}` } })
       return
     }
     setInquiryOpen(true)
+  }
+
+  function openReport() {
+    if (!user) {
+      navigate('/login', { state: { from: `/properties/${id}` } })
+      return
+    }
+    setReportOpen(true)
   }
 
   if (isLoading) {
@@ -210,6 +235,7 @@ export function PropertyDetailsPage() {
             <div><strong>Ask Estate</strong><p>Get grounded answers from this listing’s verified facts.</p></div>
             <ArrowRight size={16} />
           </Link>
+          <button className="btn btn-outline btn-small report-listing-button" type="button" onClick={openReport}><Flag size={16} />Report this listing</button>
         </aside>
       </div>
 
@@ -237,6 +263,38 @@ export function PropertyDetailsPage() {
                 onClick={() => createLead.mutate()}
               >
                 <Send size={15} />{createLead.isPending ? 'Sending…' : 'Send inquiry'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {reportOpen && (
+        <div className="inquiry-modal-backdrop" role="presentation" onClick={() => setReportOpen(false)}>
+          <div className="inquiry-modal" role="dialog" aria-modal="true" aria-labelledby="report-title" onClick={(event) => event.stopPropagation()}>
+            <button className="modal-close" type="button" aria-label="Close report form" onClick={() => setReportOpen(false)}><X size={18} /></button>
+            <span className="eyebrow">REPORT A LISTING</span>
+            <h2 id="report-title">Help us keep listings accurate</h2>
+            <p>Tell us what needs attention. Reports are reviewed by the Estate team.</p>
+            <select className="field-control" value={reportReason} onChange={(event) => setReportReason(event.target.value)} aria-label="Report reason">
+              <option value="INCORRECT_LISTING_DETAILS">Incorrect listing details</option>
+              <option value="MISLEADING_INFORMATION">Misleading information</option>
+              <option value="INAPPROPRIATE_CONTENT">Inappropriate content</option>
+              <option value="POSSIBLE_SCAM">Possible scam</option>
+              <option value="OTHER">Other</option>
+            </select>
+            <textarea
+              className="field-control"
+              rows={4}
+              maxLength={2000}
+              value={reportDetails}
+              placeholder="Add any details that will help our review team"
+              onChange={(event) => setReportDetails(event.target.value)}
+            />
+            <div className="inquiry-modal-actions">
+              <button className="btn btn-outline btn-small" type="button" onClick={() => setReportOpen(false)}>Cancel</button>
+              <button className="btn btn-primary btn-small" type="button" disabled={createReport.isPending} onClick={() => createReport.mutate()}>
+                <Flag size={15} />{createReport.isPending ? 'Submitting…' : 'Submit report'}
               </button>
             </div>
           </div>
