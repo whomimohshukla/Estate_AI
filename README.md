@@ -972,6 +972,8 @@ DELETE /properties/:id
 
 POST   /properties/:id/images
 DELETE /properties/:id/images/:imageId
+PATCH  /properties/:id/images/order
+PATCH  /properties/:id/images/:imageId/cover
 
 GET    /agents/me/properties
 PATCH  /properties/:id/status
@@ -985,8 +987,9 @@ POST /ai/generate-description
 POST /ai/chat
 POST /ai/compare
 
-GET  /ai/conversations
-GET  /ai/conversations/:id
+GET    /ai/conversations
+GET    /ai/conversations/:id
+DELETE /ai/conversations/:id
 
 POST /ai/embeddings/:propertyId
 POST /ai/embeddings/reindex
@@ -999,11 +1002,13 @@ POST  /leads
 GET   /leads
 GET   /leads/:id
 
-PATCH /leads/:id/status
-PATCH /leads/:id/follow-up
+PATCH /leads/:id
+POST|PATCH /leads/:id/status
+POST|PATCH /leads/:id/follow-up
 
 POST  /leads/:id/activities
 GET   /leads/:id/activities
+GET   /leads/export
 ```
 
 ## Favorite APIs
@@ -1019,10 +1024,15 @@ GET    /favorites
 ```http
 GET   /admin/dashboard
 GET   /admin/users
+GET   /admin/audit-logs
+GET   /admin/properties
 GET   /admin/properties/pending
 
 PATCH /admin/properties/:id/approve
 PATCH /admin/properties/:id/reject
+PATCH /admin/properties/:id/request-correction
+PATCH /admin/users/:id/status
+PATCH /admin/users/:id/role
 ```
 
 ---
